@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/hapi-server/plot-python.svg?branch=main)](https://travis-ci.org/hapi-server/plot-python)
+
 **HAPI plotting client for Python 3.6+**
 
 # Installation
