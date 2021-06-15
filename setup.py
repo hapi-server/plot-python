@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 #install_requires = ["matplotlib", "hapiclient @ git+https://github.com/hapi-server/client-python#egg=hapiclient"]
 install_requires = ["matplotlib", "hapiclient>0.1.7"]
 
-if sys.argv[1] == 'develop':
+if len(sys.argv) > 1 and sys.argv[1] == 'develop':
     install_requires.append("deepdiff<3.3.0")
     if sys.version_info < (3, 6):
         install_requires.append("pytest<5.0.0")
@@ -25,5 +25,6 @@ setup(
     license='LICENSE.txt',
     description='Plot data from HAPI server',
     long_description=open('README.md').read(),
+    include_package_data=True,
     install_requires=install_requires
 )
