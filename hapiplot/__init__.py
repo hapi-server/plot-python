@@ -4,6 +4,9 @@ from hapiplot.hapiplot import hapiplot
 # Allow "from hapiplot import autoplot"
 from hapiplot.autoplot.autoplot import autoplot
 
+# Allow "from hapiplot import gallery"
+from hapiplot.gallery.gallery import gallery
+
 # This is needed because setopts reads all rcParams and adds passed rcParams.
 # The default rcParams include those that are depricated and so a warning is
 # generated when these rcParams are used with a context manager.
