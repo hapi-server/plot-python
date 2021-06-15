@@ -13,4 +13,4 @@ import warnings
 #ignores = ['datapath','savefig.frameon', 'text.latex.unicode', 'verbose.fileo', 'verbose.level', 'datapath']
 warnings.filterwarnings(action='ignore', category=UserWarning)
 
-__version__ = '0.0.1b4'
+__version__ = '0.0.1b5'
