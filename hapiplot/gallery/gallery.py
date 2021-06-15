@@ -1,3 +1,20 @@
+def prompt(msg):
+    '''Python 2/3 imput compatability function. Pauses for user input.
+
+    If Python 3, calls
+
+    `input(msg)`
+
+    If Python 2, calls
+
+    `raw_input(msg)`
+    '''
+    import sys
+    if sys.version_info[0] > 2:
+        input(msg)
+    else:
+        raw_input(msg)
+
 def gallery(*args, **kwargs):
     """Create a web-browsable gallery of plots (aka "PNG Walk").
 
@@ -44,7 +61,7 @@ def gallery(*args, **kwargs):
 
     from multiprocessing import Process
     from hapiclient.hapi import cachedir
-    from hapiclient.util import error, warning, setopts, prompt
+    from hapiclient.util import error, warning, setopts
     from hapiplotserver import hapiplotserver
 
     if len(args) != 2 and len(args) !=3:
@@ -92,8 +109,12 @@ def gallery(*args, **kwargs):
     url = url + '&format=gallery'
 
     try:
-        process = Process(target=hapiplotserver, kwargs=opts)
+        #kwargs = {'port': opts['port'], 'workers': 2, 'loglevel': loglevel}
+        import multiprocessing as mp
+        process = mp.Process(target=hapiplotserver, kwargs=opts)
         process.start()
+        print("gallery.py: Sleeping for 3 seconds while server starts.")
+        time.sleep(3)
     except Exception as e:
         print(e)
         print("Terminating server.")

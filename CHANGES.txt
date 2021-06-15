@@ -10,3 +10,5 @@ v0.0.1b4:
 	2021-06-14 ab973fa Autoplot fix
 	2021-06-14 22dc18b Autoplot import syntax
 v0.0.1b5:
+v0.0.1b6:
+	2021-06-14 22dc18b Autoplot import syntax
