@@ -1,4 +1,4 @@
-from hapiplot.autoplot.autoplot import autoplot
+from hapiplot import autoplot
 
 server     = 'http://hapi-server.org/servers/TestData2.0/hapi'
 dataset    = 'dataset1'
