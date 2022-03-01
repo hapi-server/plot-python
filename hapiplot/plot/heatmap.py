@@ -129,6 +129,7 @@ def heatmap(x, y, z, **kwargs):
             z = np.transpose(z)
 
         havegaps = False
+        Igaps = []
         ynew = []
         for k in range(0, len(y)-1):
             ynew.append(y[k][0])
@@ -149,7 +150,6 @@ def heatmap(x, y, z, **kwargs):
             znew = z[0,:]
             nanrow = np.nan*z[0,:]
 
-            Igaps = []
             ynew = []
             ynew.append(y[0][0])
             if y[0][1] != y[1][0]: # Gap between bins
