@@ -121,22 +121,28 @@ def timeseries(t, y, **kwargs):
         fig, ax = plt.subplots()
         fig.canvas.set_window_title(opts['title'])
 
+    #import pdb;pdb.set_trace()
     if all_nan:
-        ax.plot([t[0], t[-1]], [0, 0], linestyle='None')
-        ax.set_yticklabels([]) #
+        for i in range(0, y.shape[1]):
+            ax.plot([t[0], t[-1]], [0, 0], linestyle='None')
+        ax.set_yticklabels([])
+        ax.set_yticks([])
     else:
         ax.plot(t, y, **props)
 
     ax.set(ylabel=opts['ylabel'], xlabel=opts['xlabel'], title=opts['title'])
     try:
-        ax.ticklabel_format(axis='y', style='sci', scilimits=(-3,3))
+        ax.ticklabel_format(axis='y', style='sci', scilimits=(-3,3),useMathText=True)
     except:
         pass
-    if not all_nan and legendlabels != []:
+    if legendlabels != []:
         fig.legend(opts['legendlabels'])
     ax.set_position([0.12,0.125,0.850,0.75])
 
-    ax.grid()
+    if all_nan:
+        ax.grid(which='major', axis='x')
+    else:
+        ax.grid()
 
     if not all_nan and len(ylabels) > 0:
         ax.set_yticks(np.unique(y))

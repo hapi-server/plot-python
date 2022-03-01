@@ -190,7 +190,15 @@ def hapiplot(*args, **kwargs):
     # Convert from NumPy array of byte literals to NumPy array of
     # datetime objects.
     timename = meta['parameters'][0]['name']
-    Time = hapitime2datetime(data[timename])
+
+    nodata = False
+    if len(data[timename]) == 0:
+        nodata = True
+        Time = hapitime2datetime(np.array([meta['x_time.min'], meta['x_time.max']]), allow_missing_Z=True)
+        data = np.ndarray(shape=(2,), dtype=data.dtype)
+        #data[timename] = Time
+    else:
+        Time = hapitime2datetime(data[timename], allow_missing_Z=True)
 
     if len(meta["parameters"]) == 1:
         a = 0 # Time is only parameter
@@ -202,6 +210,10 @@ def hapiplot(*args, **kwargs):
         meta["parameters"][i]['hapiplot'] = {}
 
         name = meta["parameters"][i]["name"]
+
+        if nodata:
+            # Use NaN values for plot
+            data[name] = np.full(data.dtype[i].shape, np.nan)
 
         # Return cached image (case where we are returning binary image data)
         # imagepath() options. Only need filename under these conditions.
@@ -237,7 +249,15 @@ def hapiplot(*args, **kwargs):
         # create N2 plots.
         if len(data[name].shape) == 3:  # shape = (Time, N1, N2)
 
+            pidx = 1 # Primary index is N2
+            sidx = 0 # Secondary index is N1
             nplts = data[name].shape[1]
+            if data[name].shape[1] > data[name].shape[2]:
+                pidx = 0
+                sidx = 1
+                nplts = data[name].shape[2]
+
+
             if opts['returnimage']:
                 warning('Only returning first image for parameter with size[1] > 1.')
                 nplts = 1
@@ -245,17 +265,28 @@ def hapiplot(*args, **kwargs):
                 timename = meta['parameters'][0]['name']
 
                 # Name to indicate what is plotted
-                name_new = name + "[:," + str(j) + "]"
+
+                if pidx > sidx:
+                    name_new = name + "[" + str(j) + ",:]"
+                else:
+                    name_new = name + "[:," + str(j) + "]"
+
                 # Reduced data ND Array
                 datar = np.ndarray(shape=(data[name].shape[0]),
                                    dtype=[
                                            (timename, data.dtype[timename]),
                                            (name_new, data[name].dtype.str, 
-                                            data.dtype[name].shape[1])
+                                            data[name].shape[1+pidx])
                                          ])
 
+                #import pdb;pdb.set_trace()
+                
                 datar[timename] = data[timename]
-                datar[name_new] = data[name][:, j]
+                if pidx > sidx:
+                    datar[name_new] = data[name][:, j, :]
+                else:
+                    datar[name_new] = data[name][:, :, j]
+
                 # Copy metadata to create a reduced metadata object
                 metar = meta.copy()  # Shallow copy
                 metar["parameters"] = []
@@ -266,8 +297,9 @@ def hapiplot(*args, **kwargs):
                 # Give new name to indicate it is a subset of full parameter
                 metar["parameters"][1]['name'] = name_new
                 metar["parameters"][1]['name_orig'] = name
-                # New size is N1
-                metar["parameters"][1]['size'] = [meta["parameters"][i]['size'][1]]
+
+                # New size is N1 or N2
+                metar["parameters"][1]['size'] = [meta["parameters"][i]['size'][pidx]]
 
                 if 'units' in metar["parameters"][1]:
                     if type(meta["parameters"][i]['units']) == str or meta["parameters"][i]['units'] == None:
@@ -286,14 +318,28 @@ def hapiplot(*args, **kwargs):
                 # Extract bins corresponding to jth column of data[name]
                 if 'bins' in metar["parameters"][1]:
                     metar["parameters"][1]['bins'] = []
-                    metar["parameters"][1]['bins'].append(meta["parameters"][i]['bins'][j])
-                
+                    metar["parameters"][1]['bins'].append(meta["parameters"][i]['bins'][pidx])
+
+
+                bin_title = ""
+                if 'bins' in meta["parameters"][i] and len(meta["parameters"][i]['bins']) > 1:
+                    bin_title = meta["parameters"][i]['bins'][sidx]['name']
+                    if 'centers' in meta["parameters"][i]['bins'][sidx]:
+                        bin_title = bin_title  + " = " + str(meta["parameters"][i]['bins'][sidx]['centers'][j])
+                        if 'units' in meta["parameters"][i]['bins'][sidx]:
+                            if meta["parameters"][i]['bins'][sidx]['units'] is not None:
+                                bin_title = bin_title + " [" + meta["parameters"][i]['bins'][sidx]['units'] + "]"
+                            bin_title = "\n" + bin_title
+
+                opts['title'] = meta["x_server"] + "\n" + meta["x_dataset"] + " | " + name_new + bin_title
+
                 # rcParams is modified by setopts to have all rcParams.
                 # reset to original passed rcParams so that imagepath
                 # computes file name based on rcParams passed to hapiplot.
                 if 'rcParams' in kwargs:
                     opts['rcParams'] = kwargs['rcParams']
 
+                #import pdb;pdb.set_trace()
                 metar = hapiplot(datar, metar, **opts)
                 meta["parameters"][i]['hapiplot'] = metar["parameters"][i]['hapiplot']
             return meta
@@ -347,7 +393,10 @@ def hapiplot(*args, **kwargs):
             if len(name) + len(units) > 30:
                 nl = "\n"
 
-            zlabel = name + nl + " [" + units + "]"
+            #zlabel = name + nl + " [" + units + "]"
+            zlabel = "";
+            if units is not None:
+                zlabel = " [" + units + "]"
 
             if 'bins' in meta['parameters'][i]:
                 if 'ranges' in meta["parameters"][i]['bins'][0]:
@@ -434,7 +483,7 @@ def hapiplot(*args, **kwargs):
 
             ptype = meta["parameters"][i]["type"]
             if ptype == "isotime":
-                y = hapitime2datetime(data[name])
+                y = hapitime2datetime(data[name],allow_missing_Z=True)
             elif ptype == 'string':
                 y = data[name].astype('U')
             else:
@@ -513,14 +562,14 @@ def hapiplot(*args, **kwargs):
                             if 'centers' in meta['parameters'][i]['bins'][0]:
                                 if meta['parameters'][i]['bins'][0]['centers'][l] is not None:
                                     bin_label = bin_label + ' center = ' + str(meta['parameters'][i]['bins'][0]['centers'][l]) + bin_units
-                                else:
-                                    bin_label = bin_label + ' center = None'
+                                #else:
+                                #   bin_label = bin_label + ' center = None'
 
                             if 'ranges' in meta['parameters'][i]['bins'][0]:
                                 if type(meta['parameters'][i]['bins'][0]['ranges'][l]) == list:
                                     bin_label = bin_label + sep + ' range = [' + str(meta['parameters'][i]['bins'][0]['ranges'][l][0]) + ', ' + str(meta['parameters'][i]['bins'][0]['ranges'][l][1]) + ']' + bin_units
-                                else:      
-                                    bin_label = bin_label + sep + ' range = [None]'
+                                #else:      
+                                #    bin_label = bin_label + sep + ' range = [None]'
 
                             if bin_label != '':
                                 bin_label = 'bin:' + bin_label
@@ -529,11 +578,16 @@ def hapiplot(*args, **kwargs):
                         if col_name == '':
                             col_name = 'col #%d' % l
 
+                        if nodata:
+                            col_name = col_name + " [no data in interval]"
+
                         if 'label' in meta['parameters'][i] and \
                             type(meta['parameters'][i]['label']) == list and \
                             len(meta['parameters'][i]['label']) > l and \
                             meta['parameters'][i]['label'][l].strip() != '':
                                 col_name = meta['parameters'][i]['label'][l]
+                                if nodata:
+                                    col_name = col_name + " [no data in interval]"
 
                         if type(units) == list:
                             if len(units) == 1:
