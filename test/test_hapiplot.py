@@ -5,12 +5,12 @@ from hapiplot import hapiplot
 
 from imgcheck import imgcheck
 
-logging = True
+logging = False
 returnimage = True
 
 def test_2_0():
     # All TestData2.0 parameters
-    
+
     server     = 'http://hapi-server.org/servers/TestData2.0/hapi'
     dataset    = 'dataset1'
     start      = '1970-01-01Z'

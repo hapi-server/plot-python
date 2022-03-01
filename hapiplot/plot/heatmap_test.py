@@ -3,7 +3,7 @@
 # * Print image to file and compare with reference
 # * Compare figure window screenshot with printed image.
 
-from hapiclient.plot.heatmap import heatmap
+from hapiplot.plot.heatmap import heatmap
 from datetime import datetime, timedelta
 import numpy as np
 
@@ -11,7 +11,7 @@ tests = range(0,31)
 tests = range(27,31)
 #tests = range(23,24)
 tests = range(0,31)
-tests = [31]
+#tests = [31]
 
 import matplotlib as plt
 plt.rcParams.update({'figure.max_open_warning': 0})

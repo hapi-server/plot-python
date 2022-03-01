@@ -50,6 +50,8 @@ def imgcheck(ref_file, img2, show_diff=False, generate_ref_files=False):
     diff = imgdiff(img1, img2, diff_file=diff_file, show_diff=show_diff)
     
     if diff == False:
-        print("imgcheck(): \033[32mPASS\033[0m: Images are identical.")
+        print("imgcheck(): \033[32mPASS\033[0m: Image")
+        print("   " + ref_file)
+        print("   has not changed")
     else:
         print("imgcheck(): \033[0;31mFAIL\033[0m: Images differ. See diff image: " + diff_file)
