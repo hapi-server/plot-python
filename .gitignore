@@ -1,0 +1,10 @@
+test/imgs/2.0/*now*
+test/imgs/2.0/*dif*
+test/imgs/2.1/*now*
+test/imgs/2.1/*dif*
+.DS_Store
+__pycache__
+anaconda3/
+build/
+dist/
+hapiplot.egg-info/
