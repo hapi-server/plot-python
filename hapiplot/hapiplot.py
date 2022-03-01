@@ -88,7 +88,7 @@ def hapiplot(*args, **kwargs):
 
     Example
     --------
-        >>> server  = 'http://hapi-server.org/servers/TestData/hapi'
+        >>> server  = 'http://hapi-server.org/servers/TestData2.0/hapi'
         >>> dataset = 'dataset1'
         >>> start   = '1970-01-01T00:00:00'
         >>> stop    = '1970-01-02T00:00:00'

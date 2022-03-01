@@ -32,11 +32,11 @@ def gallery(*args, **kwargs):
     Examples
     ----------
     >>> from hapiclient import gallery
-    >>> gallery('http://hapi-server.org/servers/TestData/hapi', 'dataset1')
+    >>> gallery('http://hapi-server.org/servers/TestData2.0/hapi', 'dataset1')
     # Webpage tab opens
 
     >>> from hapiclient import gallery
-    >>> gallery('http://hapi-server.org/servers/TestData/hapi','dataset1', 'vector')
+    >>> gallery('http://hapi-server.org/servers/TestData2.0/hapi','dataset1', 'vector')
     # Webpage tab opens
 
     Parameters

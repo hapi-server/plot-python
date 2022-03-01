@@ -7,7 +7,7 @@ def autoplot(server, dataset, parameters, start, stop, **kwargs):
     Example
     -------
     >>> from hapiclient import autoplot
-    >>> server = 'http://hapi-server.org/servers/TestData/hapi'
+    >>> server = 'http://hapi-server.org/servers/TestData2.0/hapi'
     >>> autoplot(server, 'dataset1', 'scalar,vector', '1970-01-01', '1970-01-02')
     
     Autoplot application launches or its canvas is updated.
