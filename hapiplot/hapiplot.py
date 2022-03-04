@@ -215,30 +215,8 @@ def hapiplot(*args, **kwargs):
             # Use NaN values for plot
             data[name] = np.full(data.dtype[i].shape, np.nan)
 
-        # Return cached image (case where we are returning binary image data)
-        # imagepath() options. Only need filename under these conditions.
-        if opts['saveimage'] or (opts['returnimage'] and opts['useimagecache']):
-            # Will use given rc style parameters and style name to generate file name.
-            # Assumes rc parameters of style and hapiplot defaults never change.
-            styleParams = {}
-            fmt = opts['rcParams']['savefig.format']
-            if 'rcParams' in kwargs:
-                styleParams = kwargs['rcParams']
-                if 'savefig.format' in kwargs['rcParams']:
-                    kwargs['rcParams']['savefig.format']
-
-            fnameimg = imagepath(meta, i, opts['cachedir'], styleParams, fmt)
-
-        if opts['useimagecache'] and opts['returnimage'] and os.path.isfile(fnameimg):
-            log('Returning cached binary image data in ' + fnameimg, opts)
-
-            meta["parameters"][i]['hapiplot']['imagefile'] = fnameimg
-            with open(fnameimg, "rb") as f:
-                meta["parameters"][i]['hapiplot']['image'] = f.read()
-            continue
 
         name = meta["parameters"][i]["name"]
-        log("Plotting parameter '%s'" % name, opts)
 
         if len(data[name].shape) > 3:
             # TODO: Implement more than 2 dimensions?
@@ -248,6 +226,8 @@ def hapiplot(*args, **kwargs):
         # If parameter has a size with two elements, e.g., [N1, N2]
         # create N2 plots.
         if len(data[name].shape) == 3:  # shape = (Time, N1, N2)
+
+            log("Parameter '%s' has 3 components. Creating one plot per component." % name, opts)
 
             pidx = 1 # Primary index is N2
             sidx = 0 # Secondary index is N1
@@ -279,8 +259,6 @@ def hapiplot(*args, **kwargs):
                                             data[name].shape[1+pidx])
                                          ])
 
-                #import pdb;pdb.set_trace()
-                
                 datar[timename] = data[timename]
                 if pidx > sidx:
                     datar[name_new] = data[name][:, j, :]
@@ -339,10 +317,33 @@ def hapiplot(*args, **kwargs):
                 if 'rcParams' in kwargs:
                     opts['rcParams'] = kwargs['rcParams']
 
-                #import pdb;pdb.set_trace()
                 metar = hapiplot(datar, metar, **opts)
                 meta["parameters"][i]['hapiplot'] = metar["parameters"][i]['hapiplot']
             return meta
+
+        # Return cached image (case where we are returning binary image data)
+        # imagepath() options. Only need filename under these conditions.
+        if opts['saveimage'] or (opts['returnimage'] and opts['useimagecache']):
+            # Will use given rc style parameters and style name to generate file name.
+            # Assumes rc parameters of style and hapiplot defaults never change.
+            styleParams = {}
+            fmt = opts['rcParams']['savefig.format']
+            if 'rcParams' in kwargs:
+                styleParams = kwargs['rcParams']
+                if 'savefig.format' in kwargs['rcParams']:
+                    kwargs['rcParams']['savefig.format']
+
+            fnameimg = imagepath(meta, i, opts['cachedir'], styleParams, fmt)
+
+        if opts['useimagecache'] and opts['returnimage'] and os.path.isfile(fnameimg):
+            log('Returning cached binary image data in ' + fnameimg, opts)
+
+            meta["parameters"][i]['hapiplot']['imagefile'] = fnameimg
+            with open(fnameimg, "rb") as f:
+                meta["parameters"][i]['hapiplot']['image'] = f.read()
+            continue
+
+        log("Plotting parameter '%s'" % name, opts)
 
         if opts['title'] != '':
             title = opts['title']
@@ -548,17 +549,18 @@ def hapiplot(*args, **kwargs):
                             if 'units' in meta['parameters'][i]['bins'][0]:
                                 bin_units = meta['parameters'][i]['bins'][0]['units']
                                 if type(bin_units) == list:
-                                    if type(bin_units[l]) == str:
+                                    if type(bin_units[l]) == str and bin_units != '':
                                         bin_units = ' [' + bin_units[l] + ']'
                                     elif bin_units[l] == None:
-                                        bin_units = ' []'
+                                        bin_units = ' '
                                     else:
-                                        bin_units = ''
+                                        bin_units = ' '
                                 else:
-                                    if type(bin_units) == str:
+                                    if type(bin_units) == str and bin_units != '':
                                        bin_units = ' [' + bin_units + ']'
                                     else:
-                                       bin_units = ''
+                                       bin_units = ' '
+                                
                             if 'centers' in meta['parameters'][i]['bins'][0]:
                                 if meta['parameters'][i]['bins'][0]['centers'][l] is not None:
                                     bin_label = bin_label + ' center = ' + str(meta['parameters'][i]['bins'][0]['centers'][l]) + bin_units
@@ -567,12 +569,13 @@ def hapiplot(*args, **kwargs):
 
                             if 'ranges' in meta['parameters'][i]['bins'][0]:
                                 if type(meta['parameters'][i]['bins'][0]['ranges'][l]) == list:
-                                    bin_label = bin_label + sep + ' range = [' + str(meta['parameters'][i]['bins'][0]['ranges'][l][0]) + ', ' + str(meta['parameters'][i]['bins'][0]['ranges'][l][1]) + ']' + bin_units
+                                    if meta['parameters'][i]['bins'][0]['ranges'][l][0] and meta['parameters'][i]['bins'][0]['ranges'][l][1] is not None:
+                                        bin_label = bin_label + sep + ' range = [' + str(meta['parameters'][i]['bins'][0]['ranges'][l][0]) + ', ' + str(meta['parameters'][i]['bins'][0]['ranges'][l][1]) + ']' + bin_units
                                 #else:      
                                 #    bin_label = bin_label + sep + ' range = [None]'
 
                             if bin_label != '':
-                                bin_label = 'bin:' + bin_label
+                                bin_label = 'bin: ' + bin_label
                                 col_name = bin_name + '#%d' % l
 
                         if col_name == '':
@@ -591,11 +594,12 @@ def hapiplot(*args, **kwargs):
 
                         if type(units) == list:
                             if len(units) == 1:
-                                legendlabels.append(col_name + ' [' + units[0] + '] ' + bin_label)                                
-                            elif type(units[l]) == str:
+                                if units[0] != '':
+                                    legendlabels.append(col_name + ' [' + units[0] + '] ' + bin_label)
+                            elif type(units[l]) == str and units[l] != '':
                                 legendlabels.append(col_name + ' [' + units[l] + '] ' + bin_label)
                             elif units[l] == None:
-                                legendlabels.append(col_name + ' [] ' + bin_label)
+                                legendlabels.append(col_name + ' ' + bin_label)
                             else:
                                 legendlabels.append(col_name + ' ' + bin_label)
                         else:
@@ -660,7 +664,23 @@ def hapiplot(*args, **kwargs):
 
 def imagepath(meta, i, cachedir, opts, fmt):
 
-    optsmd5 = hashlib.md5(json.dumps(opts, sort_keys=True).encode('utf8')).hexdigest()
+    # The value of axis.prop_cycle is a cycler
+    # https://matplotlib.org/cycler/
+    # and can't be serialized by json.dumps.
+    if 'axes.prop_cycle' in opts:
+        opts['axes.prop_cycle'] = list(opts['axes.prop_cycle'])
+
+    try:
+        optsmd5 = hashlib.md5(json.dumps(opts, sort_keys=True).encode('utf8')).hexdigest()
+    except:
+        # Remove elements that can't be serialized.
+        for key in opts:
+            try:
+                json.dumps(opts[key])
+            except:
+                #print('Removed ' + key)
+                opts[key] = None
+        optsmd5 = hashlib.md5(json.dumps(opts, sort_keys=True).encode('utf8')).hexdigest()
 
     fname = request2path(meta['x_server'],
                          meta['x_dataset'],
