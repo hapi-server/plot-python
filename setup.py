@@ -25,6 +25,7 @@ setup(
     license='LICENSE.txt',
     description='Plot data from HAPI server',
     long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     include_package_data=True,
     install_requires=install_requires
 )
