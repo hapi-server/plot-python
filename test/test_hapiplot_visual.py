@@ -1,12 +1,7 @@
 import numpy as np
 
-#tests = [10]
-tests = range(0,9)
-#tests = [10]
-tests = range(1,2)
-#tests = [8]
-tests = [8]
-tests = [9]
+tests = range(0,7)
+tests = [1]
 
 from hapiclient import hapi
 from hapiplot import hapiplot
@@ -140,31 +135,27 @@ for tn in tests:
         popts = {
                     'logging': True,
                     'saveimage': False,
+                    'backend': 'Qt5Agg',
                     'style': 'classic',
                     'title': 'Tight layout test. Figures should match.'
                 }
 
         data, meta = hapi(server, dataset, parameters, start, stop, **opts)
 
-        if not matplotlib.get_backend() in matplotlib.rcsetup.interactive_bk:
-            %matplotlib qt
             
-        if matplotlib.get_backend() in matplotlib.rcsetup.interactive_bk:
-            # Set labels and make tight layout after call to hapiplot
-            meta = hapiplot(data, meta, **popts)
-            fig = meta['parameters'][1]['hapiplot']['figure']
-            fig.axes[0].set_ylabel('y label\nsub y label\nsub sub ylabel 2')
-            fig.tight_layout()
-            fig.show()
-            # Two calls to fig.tight_layout() may be needed b/c of bug in PyQt:
-            # https://github.com/matplotlib/matplotlib/issues/10361
+        # Set labels and make tight layout after call to hapiplot
+        meta = hapiplot(data, meta, **popts)
+        fig = meta['parameters'][1]['hapiplot']['figure']
+        fig.axes[0].set_ylabel('y label\nsub y label\nsub sub ylabel 2')
+        fig.tight_layout()
+        fig.show()
+        # Two calls to fig.tight_layout() may be needed b/c of bug in PyQt:
+        # https://github.com/matplotlib/matplotlib/issues/10361
 
-            # Set labels and make tight in call to hapiplot
-            popts['_rcParams'] = {'figure.bbox': 'tight'}
-            popts['ylabel'] = 'y label\nsub y label\nsub sub ylabel 2'
-            meta = hapiplot(data, meta, **popts)
-        else:
-            print("Skipping test because matplotlib backend is not interactive.")
+        # Set labels and make tight in call to hapiplot
+        popts['_rcParams'] = {'figure.bbox': 'tight'}
+        popts['ylabel'] = 'y label\nsub y label\nsub sub ylabel 2'
+        meta = hapiplot(data, meta, **popts)
 
 
     if tn == 6:
@@ -224,15 +215,15 @@ for tn in tests:
         for i in range(9):
             data['spectra'][i,i] = -1e31 # Add a fill value
 
-        popts['title'] = 'Bins centered on timestamp; no value at 00:06'
+        popts['title'] = 'Bins centered on timestamp; NaNs on diagonal; no value at 00:06'
         meta['timeStampLocation'] = 'center'
         hapiplot(data, meta, **popts)
 
-        popts['title'] = 'Bins start on timestamp; no value at 00:06'
+        popts['title'] = 'Bins start on timestamp;  NaNs on diagonal; no value at 00:06'
         meta['timeStampLocation'] = 'begin'
         hapiplot(data, meta, **popts)
 
-        popts['title'] = 'Bins end on timestamp; no value at 00:06'
+        popts['title'] = 'Bins end on timestamp;  NaNs on diagonal; no value at 00:06'
         popts['title'] = 'Should match previous'
         meta['timeStampLocation'] = 'end'
         hapiplot(data, meta, **popts)

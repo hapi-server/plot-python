@@ -6,7 +6,7 @@ from hapiplot import hapiplot
 from imgcheck import imgcheck
 
 logging = False
-returnimage = True
+do_diff = True
 
 def test_2_0():
     # All TestData2.0 parameters
@@ -27,9 +27,12 @@ def test_2_0():
             # Change fill value to be same as second element of parameter array.
             metax["parameters"][1]['fill'] = data[parameter].take(1).astype('U')
 
-        popts = {'useimagecache': False, 'logging': logging, 'returnimage': True}
+        popts = {'useimagecache': False, 'logging': logging, 'returnimage': do_diff}
 
         metap = hapiplot(data, metax, **popts)
+
+        if do_diff == False:
+            continue
 
         idx = 1
         if i == 0: # Time parameter
@@ -61,7 +64,7 @@ def test_2_1():
             # Change fill value to be same as second element of parameter array.
             metax["parameters"][1]['fill'] = data[parameter].take(1).astype('U')
 
-        popts = {'useimagecache': False, 'logging': logging, 'returnimage': returnimage}
+        popts = {'useimagecache': False, 'logging': logging, 'returnimage': do_diff}
 
         if parameter == 'matrix':
             # The string 
@@ -76,7 +79,7 @@ def test_2_1():
 
         metap = hapiplot(data, metax, **popts)
 
-        if returnimage == False:
+        if do_diff == False:
             continue
 
         idx = 1
