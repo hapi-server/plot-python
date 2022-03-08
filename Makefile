@@ -1,5 +1,29 @@
+# Development:
+# Test repository code:
+#   make repository-test     # Test using $(PYTHON)
+#   make repository-test-all # Test on all versions in $(PYTHONVERS)
+#
+# Making a local package:
+# 1. Update CHANGES.txt to have a new version line
+# 2. make package
+# 3. make package-test-all
+#
+# Upload package to pypi.org test starting with uploaded package:
+# 1. make release
+# 2. Wait ~5 minutes and execute
+# 3. make release-test-all
+#    (Will fail until new version is available at pypi.org for pip install.
+#     Sometimes takes ~5 minutes even though web page is immediately
+#     updated.)
+# 4. After package is finalized, create new version number in CHANGES.txt ending
+#    with "b0" in setup.py and then run
+#       make version-update
+# 	git commit -a -m "Update version for next release"
+#    This will update the version information in the repository to indicate it
+#    is now in a pre-release state.
+
 # Default Python version to use for tests
-PYTHON=python3.6
+PYTHON=python3.7
 PYTHON_VER=$(subst python,,$(PYTHON))
 
 # Python versions to test
@@ -31,29 +55,6 @@ ifeq ($(TRAVIS_OS_NAME),windows)
 	CONDA_ACTIVATE=source $(CONDA)/Scripts/activate; conda activate
 endif
 
-# Development:
-# Test repository code:
-#   make repository-test     # Test using $(PYTHON)
-#   make repository-test-all # Test on all versions in $(PYTHONVERS)
-#
-# Making a local package:
-# 1. Update CHANGES.txt to have a new version line
-# 2. make package
-# 3. make package-test-all
-#
-# Upload package to pypi.org test starting with uploaded package:
-# 1. make release
-# 2. Wait ~5 minutes and execute
-# 3. make release-test-all
-#    (Will fail until new version is available at pypi.org for pip install.
-#     Sometimes takes ~5 minutes even though web page is immediately
-#     updated.)
-# 4. After package is finalized, create new version number in CHANGES.txt ending
-#    with "b0" in setup.py and then run
-#       make version-update
-# 	git commit -a -m "Update version for next release"
-#    This will update the version information in the repository to indicate it
-#    is now in a pre-release state.
 
 URL=https://upload.pypi.org/
 REP=pypi
@@ -76,6 +77,7 @@ ifeq ($(UNAME_S),Darwin)
 	pythonw=$(subst bin/$(PYTHON),bin/pythonw,$(a))
 endif
 
+
 ################################################################################
 # Test contents in repository using different python versions
 test:
@@ -90,7 +92,6 @@ repository-test-all:
 # These require visual inspection.
 repository-test:
 	@make clean
-	- conda remove --name $(PYTHON) --all -y
 	make condaenv PYTHON=$(PYTHON)
 	$(CONDA_ACTIVATE) $(PYTHON); $(PYTHON) setup.py develop | grep "Best"
 	$(CONDA_ACTIVATE) $(PYTHON); pip install pytest pillow; pip install .
@@ -115,20 +116,17 @@ ifeq ($(shell uname -s),Darwin)
 	CONDA_PKG=Miniconda3-latest-MacOSX-x86_64.sh
 endif
 
-
-condaenv:
+condaenv: ./anaconda3
 # ifeq ($(shell uname -s),MINGW64_NT-10.0-18362)
+	- conda remove --name $(PYTHON) --all -y
 ifeq ($(TRAVIS_OS_NAME),windows)
 	cp $(CONDA)/Library/bin/libcrypto-1_1-x64.* $(CONDA)/DLLs/
 	cp $(CONDA)/Library/bin/libssl-1_1-x64.* $(CONDA)/DLLs/
 	$(CONDA)/Scripts/conda create -y --name $(PYTHON) python=$(PYTHON_VER)
 else
-	make $(CONDA)/envs/$(PYTHON) PYTHON=$(PYTHON)
-endif
-
-$(CONDA)/envs/$(PYTHON): ./anaconda3
 	$(CONDA_ACTIVATE); \
 		$(CONDA)/bin/conda create -y --name $(PYTHON) python=$(PYTHON_VER)
+endif
 
 ./anaconda3: /tmp/$(CONDA_PKG)
 	bash /tmp/$(CONDA_PKG) -b -p $(CONDA)
