@@ -24,6 +24,7 @@ def timeseries(t, y, **kwargs):
                 'ylabel': '',
                 'logx': '',
                 'logy': '',
+                'nodata': False,
                 'backend': 'default',
                 'returnimage': False,
                 'transparent': False,
@@ -65,12 +66,24 @@ def timeseries(t, y, **kwargs):
             from matplotlib import __version__ as mpl_version
             print("timeseries(): Using Matplotlib %s with %s back-end" % (mpl_version, matplotlib.get_backend()))
 
+    if not isinstance(y, np.ndarray) and len(y) > 1 and len(y[0] > 1):
+        y = np.array(y).T
+    else:
+        y = np.array(y)
 
+    t = np.array(t)
+
+    if y.shape[0] != t.shape[0]:
+        if len(y.shape) > 1:
+            if y.shape[1] == t.shape[0]:
+                y = y.T
+            if len(t.shape) > 1 and y.shape[0] == t.shape[1]:
+                y = y.T
 
     if y.shape[0] < 11:
         props = {'linestyle': 'none', 'marker': '.', 'markersize': 16}
     elif y.shape[0] < 101:
-        props = {'lineStyle': '-', 'linewidth': 2, 'marker': '.', 'markersize': 8}
+        props = {'linestyle': '-', 'linewidth': 2, 'marker': '.', 'markersize': 8}
     else:
         props = {}
 
@@ -94,19 +107,7 @@ def timeseries(t, y, **kwargs):
         ylabels = yu
         y = yi
 
-    try:
-        all_nan = np.all(np.isnan(y))
-    except:
-        all_nan = False;
 
-    if all_nan:
-        if len(y) > 1:
-            legendlabels = ['All %d values are NaN' % len(y)]
-        if len(y) == 1:
-            legendlabels = ['One NaN value in time interval']
-    else:
-        legendlabels = opts['legendlabels']
- 
     # Can't use matplotlib.style.use(style) because not thread safe.
     # Set context using 'with'.
     # Setting stylesheet method: https://stackoverflow.com/a/22794651/1491619
@@ -121,38 +122,98 @@ def timeseries(t, y, **kwargs):
         fig, ax = plt.subplots()
         fig.canvas.set_window_title(opts['title'])
 
-    #import pdb;pdb.set_trace()
-    if all_nan:
+    if len(y.shape) > 1:
+        all_nan = np.full((y.shape[1]), False)
         for i in range(0, y.shape[1]):
-            ax.plot([t[0], t[-1]], [0, 0], linestyle='None')
+            try:
+                all_nan[i] = np.all(np.isnan(y[:,i]))
+            except:
+                all_nan[i] = False
+    else:
+        all_nan = np.array([False])
+        try:
+            all_nan[0] = np.all(np.isnan(y))
+        except:
+            all_nan[0] = False
+
+    legendlabels = opts['legendlabels'].copy()
+    if legendlabels == []:
+        if len(y.shape) > 1:
+            for i in range(0, y.shape[1]):
+                legendlabels.append('col #{}'.format(i))
+
+    if np.any(all_nan):
+        if legendlabels != []:
+            if len(y.shape) > 1:
+                for i in range(0, y.shape[1]):
+                    if all_nan[i] == True and opts['nodata'] == False:
+                        legendlabels[i] = '{0:s}: All {1:d} values are NaN'.format(legendlabels[i], y.shape[0])
+                    else:
+                        legendlabels[i] = '{0:s}: No data in interval'.format(legendlabels[i])
+            else:
+                if opts['nodata'] == True:
+                    legendlabels[0] = '{0:%s}: No data in interval'.format(legendlabels[0])
+                else:
+                    legendlabels[0] = '{0:%s}: All {1:d} values are NaN'.format(legendlabels[0], y.shape[0])
+        else:
+            if len(y.shape) > 1:
+                for i in range(0, y.shape[1]):
+                    if all_nan[i] == True and opts['nodata'] == False:
+                        legendlabels[i] = 'All {0:d} values are NaN'.format(y.shape[0])
+                    else:
+                        legendlabels[i] = 'No data in interval'
+            else:
+                if opts['nodata'] == True:
+                    legendlabels =  ['No data in interval']
+                else:
+                    legendlabels =  ['All {0:d} values are NaN'.format(len(y))]
+
+    if np.all(all_nan):
         ax.set_yticklabels([])
         ax.set_yticks([])
+
+    if np.any(all_nan):
+        if len(y.shape) > 1:
+            for i in range(0, y.shape[1]):
+                if all_nan[i]:
+                    ax.plot([t[0],t[-1]],[0,0], alpha=0)
+                else:
+                    ax.plot(t, y[:,i])
+        else:
+            ax.plot([t[0],t[-1]],[0,0], linestyle=None, alpha=0)
     else:
         ax.plot(t, y, **props)
 
     ax.set(ylabel=opts['ylabel'], xlabel=opts['xlabel'], title=opts['title'])
     try:
-        ax.ticklabel_format(axis='y', style='sci', scilimits=(-3,3),useMathText=True)
+        ax.ticklabel_format(axis='y', style='sci', scilimits=(-3,3), useMathText=True)
     except:
         pass
+
     if legendlabels != []:
-        fig.legend(opts['legendlabels'])
+        leg = fig.legend(legendlabels)
+
+    if np.any(all_nan):
+        for i in range(0, len(all_nan)):
+            leg.get_lines()[i].set_alpha(1)
+
     ax.set_position([0.12,0.125,0.850,0.75])
 
-    if all_nan:
+    if np.all(all_nan):
         ax.grid(which='major', axis='x')
     else:
         ax.grid()
 
-    if not all_nan and len(ylabels) > 0:
+    if not np.all(all_nan) and len(ylabels) > 0:
         ax.set_yticks(np.unique(y))
         ax.set_yticklabels(ylabels)
+
 
     if isinstance(t[0], datetime.datetime):
         datetick('x', axes=ax)
     if isinstance(y[0], datetime.datetime):
         datetick('y', axes=ax)
-        
+
     # savefig.transparent=True requires the following for the saved image
     # to have a transparent background. Seems as though figure.facealpha
     # and axes.facealpha should be rc parameters, but they are not. So
