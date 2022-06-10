@@ -17,7 +17,7 @@ from hapiplot.plot.util import setopts
 def hapiplot(*args, **kwargs):
     """Plot response from HAPI server.
 
-    Version: 0.2.0
+    Version: 0.2.1
     
     Demos
     -----

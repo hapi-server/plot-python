@@ -32,18 +32,17 @@ MATPLOTLIBS=3.0 3.1 3.2 3.3
 PYTHON_VER=$(subst python,,$(PYTHON))
 
 # Default Python version to use for tests
-#PYTHON=python3.7
-#MATPLOTLIBS=3.4 3.5
-#PYTHON_VER=$(subst python,,$(PYTHON))
+PYTHON=python3.7
+MATPLOTLIBS=3.4 3.5
+PYTHON_VER=$(subst python,,$(PYTHON))
 
 # Python versions to test
 # TODO: Use tox.
-PYTHONVERS=python3.8 python3.7 python3.6
-
+PYTHONVERS=python3.8 python3.7 python3.6 python3.5
 
 # VERSION is updated in "make version-update" step and derived
 # from CHANGES.txt. Do not edit.
-VERSION=0.2.0
+VERSION=0.2.1
 SHELL:= /bin/bash
 
 LONG_TESTS=false

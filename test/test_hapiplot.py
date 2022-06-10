@@ -9,7 +9,7 @@ from matplotlib import __version__ as matplotlib_version
 matplotlib_version = ".".join(matplotlib_version.split(".")[0:2])
 
 logging = False
-do_diff = False   # If False shows image on screen.
+do_diff = True   # If False shows image on screen.
 
 
 def test_2_0():
