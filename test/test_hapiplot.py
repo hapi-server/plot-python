@@ -5,8 +5,12 @@ from hapiplot import hapiplot
 
 from imgcheck import imgcheck
 
+from matplotlib import __version__ as matplotlib_version
+matplotlib_version = ".".join(matplotlib_version.split(".")[0:2])
+
 logging = False
-do_diff = True
+do_diff = False   # If False shows image on screen.
+
 
 def test_2_0():
     # All TestData2.0 parameters
@@ -16,7 +20,7 @@ def test_2_0():
     start      = '1970-01-01Z'
     stop       = '1970-01-01T00:00:11Z'
     opts       = {'logging': logging, 'usecache': False}
-    
+
     meta = hapi(server, dataset, **opts)
 
     for i in range(0,len(meta['parameters'])):
@@ -41,8 +45,8 @@ def test_2_0():
         img2 = metap['parameters'][idx]['hapiplot']['image']
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
-
-        ref_file = os.path.join(dir_path, "imgs", "2.0", parameter + ".ref.png")
+        ref_dir = os.path.join(dir_path, "imgs", "hapi-2.0", "mpl-" + matplotlib_version)
+        ref_file = os.path.join(ref_dir, parameter + ".ref.png")
 
         imgcheck(ref_file, img2, show_diff=False, generate_ref_files=False)
 
@@ -89,10 +93,11 @@ def test_2_1():
         img2 = metap['parameters'][idx]['hapiplot']['image']
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
-
-        ref_file = os.path.join(dir_path, "imgs", "2.1", parameter + ".ref.png")
+        ref_dir = os.path.join(dir_path, "imgs", "hapi-2.1", "mpl-" + matplotlib_version)
+        ref_file = os.path.join(ref_dir, parameter + ".ref.png")
 
         imgcheck(ref_file, img2, show_diff=False, generate_ref_files=False)
+
 
 def test_saveimage():
     # Returned image should be same when saveimage is True or False
@@ -131,5 +136,5 @@ def test_saveimage():
 
 if __name__ == '__main__':
     test_2_0()
-    test_2_1()
-    test_saveimage()
+    #test_2_1()
+    #test_saveimage()

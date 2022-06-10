@@ -15,3 +15,9 @@ v0.0.1b6:
 v0.2.0:
 v0.2.1:
 	2022-03-01 e25853f TestData -> TestData2.0 in docs
+	2022-03-04 47b4c4d Set content type for README.md in setup.py 
+	2022-03-04 ac1a990 Label improvements; fix for cache filename
+	2022-03-04 99ba771 Test clean-up and additions
+	2022-03-04 6538acb Remove old test files
+	2022-03-08 ce96c36 Clean up Makefile
+	2022-06-10 7d917ea, e5bd9da Handle all nans for time series

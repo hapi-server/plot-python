@@ -22,13 +22,24 @@
 #    This will update the version information in the repository to indicate it
 #    is now in a pre-release state.
 
-# Default Python version to use for tests
-PYTHON=python3.7
+# https://matplotlib.org/stable/devel/min_dep_policy.html
+PYTHON=python3.5
+MATPLOTLIBS=3.0
 PYTHON_VER=$(subst python,,$(PYTHON))
+
+PYTHON=python3.6
+MATPLOTLIBS=3.0 3.1 3.2 3.3
+PYTHON_VER=$(subst python,,$(PYTHON))
+
+# Default Python version to use for tests
+#PYTHON=python3.7
+#MATPLOTLIBS=3.4 3.5
+#PYTHON_VER=$(subst python,,$(PYTHON))
 
 # Python versions to test
 # TODO: Use tox.
 PYTHONVERS=python3.8 python3.7 python3.6
+
 
 # VERSION is updated in "make version-update" step and derived
 # from CHANGES.txt. Do not edit.
@@ -89,14 +100,21 @@ repository-test-all:
 		make repository-test PYTHON=$$version ; \
 	done
 
-# These require visual inspection.
+repository-test-single:
+	make condaenv PYTHON=$(PYTHON)
+	$(CONDA_ACTIVATE) $(PYTHON) && pip install matplotlib=="$(MATPLOTLIB).*"
+	@ $(CONDA_ACTIVATE) $(PYTHON) && $(PYTHON) setup.py develop | grep "Best"
+	# Not sure why the following is needed, but I get pytest install errors otherwise.
+	@ $(CONDA_ACTIVATE) $(PYTHON) && pip install pytest pillow; pip install .
+	$(CONDA_ACTIVATE) $(PYTHON) && $(PYTHON) -m pytest -rx -rP -v test/test_hapiplot.py
+
 repository-test:
 	@make clean
-	make condaenv PYTHON=$(PYTHON)
-	$(CONDA_ACTIVATE) $(PYTHON); $(PYTHON) setup.py develop | grep "Best"
-	$(CONDA_ACTIVATE) $(PYTHON); pip install pytest pillow; pip install .
-	$(CONDA_ACTIVATE) $(PYTHON); python -m pytest -rx -rP -v test/test_hapiplot.py
+	rm -rf anaconda3
+	$(foreach MATPLOTLIB, $(MATPLOTLIBS), \
+		make repository-test-single MATPLOTLIB=$(MATPLOTLIB) PYTHON=$(PYTHON); )
 
+# These require visual inspection.
 repository-test-other:
 	# Run using pythonw instead of python only so plot windows always work
 	# for programs called from command line. This is needed for (at least)
@@ -118,7 +136,6 @@ endif
 
 condaenv: ./anaconda3
 # ifeq ($(shell uname -s),MINGW64_NT-10.0-18362)
-	- conda remove --name $(PYTHON) --all -y
 ifeq ($(TRAVIS_OS_NAME),windows)
 	cp $(CONDA)/Library/bin/libcrypto-1_1-x64.* $(CONDA)/DLLs/
 	cp $(CONDA)/Library/bin/libssl-1_1-x64.* $(CONDA)/DLLs/
@@ -139,7 +156,6 @@ endif
 venv-test:
 	cp hapiplot_demo.py /tmp # TODO: Explain why needed.
 	source env-$(PYTHON)/bin/activate && \
-		pip install pytest && \
 		pip uninstall -y hapiplot && \
 		pip install --pre '$(PACKAGE)' \
 			--index-url $(URL)/simple  \
@@ -231,6 +247,6 @@ clean:
 	- @rm -rf dist
 	- @rm -f MANIFEST
 	- @rm -rf .pytest_cache/
-	- @rm -rf hapiclient.egg-info/
+	- @rm -rf hapiplot.egg-info/
 	- @rm -rf /c/tools/Anaconda3/envs/python3.6/Scripts/wheel.exe*
 	- @rm -rf /c/tools/Anaconda3/envs/python3.6/vcruntime140.dll.*

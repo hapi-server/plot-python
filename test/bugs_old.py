@@ -5,7 +5,7 @@ from hapiplot import hapiplot
 # http://hapi-server.org/servers-dev/#server=FadenTemp&dataset=Iowa+City+Conditions&parameters=Temperature&start=2022-02-11T00:00:00.000Z&stop=2022-02-12T00:00:00.000Z&return=image&format=svg
 
 all = False
-bn = 1
+bn = 13
 
 if bn == 1 or all == True:
     server     = 'http://hapi-server.org/servers-dev/TestData2.1/hapi'
@@ -178,5 +178,41 @@ if bn == 10 or all == True:
     
     opts       = {'format': 'binary', 'logging': True, 'usecache': True}
     
+    data, meta = hapi(server, dataset, parameters, start, stop, **opts)
+    hapiplot(data, meta)
+
+if bn == 11 or all == True:
+    server     = 'https://jfaden.net/HapiServerDemo/hapi'
+    dataset    = 'atticTemperature'
+    parameters = 'Temperature'
+    start      = '2022-03-06T00:00:00.000Z'
+    stop       = '2022-03-07T00:00:00.000Z'
+
+    opts       = {'format': 'binary', 'logging': True, 'usecache': True}
+
+    data, meta = hapi(server, dataset, parameters, start, stop, **opts)
+    hapiplot(data, meta)
+
+if bn == 12 or all == True:
+    server     = 'https://jfaden.net/HapiServerDemo/hapi'
+    dataset    = 'atticTemperature'
+    parameters = 'Temperature'
+    start      = '2003-10-20T00:00:00Z'
+    stop       = '2003-11-30T00:00:00.000Z'
+
+    opts       = {'format': 'binary', 'logging': True, 'usecache': True}
+
+    data, meta = hapi(server, dataset, parameters, start, stop, **opts)
+    hapiplot(data, meta)
+
+if bn == 13 or all == True:
+    server     = 'http://planet.physics.uiowa.edu/das/das2Server/hapi'
+    dataset    = 'Cassini/RPWS/Survey_KeyParam,B'
+    parameters = 'magnetic_specdens'
+    start      = '2010-01-01T00:00:00'
+    stop       = '2010-01-02T00:00:00'
+
+    opts       = {'format': 'binary', 'logging': True, 'usecache': True}
+
     data, meta = hapi(server, dataset, parameters, start, stop, **opts)
     hapiplot(data, meta)

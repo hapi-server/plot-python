@@ -26,6 +26,10 @@ def imgcheck(ref_file, img2, show_diff=False, generate_ref_files=False):
 
         return diff
 
+    ref_dir = os.path.dirname(ref_file)
+    print(ref_dir)
+    if not os.path.exists(ref_dir):
+        os.makedirs(ref_dir)
 
     if not os.path.exists(ref_file) or generate_ref_files:
 

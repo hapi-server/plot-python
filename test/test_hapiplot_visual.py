@@ -1,7 +1,7 @@
 import numpy as np
 
 tests = range(0,7)
-tests = [1]
+#tests = [1]
 
 from hapiclient import hapi
 from hapiplot import hapiplot
