@@ -482,6 +482,7 @@ def hapiplot(*args, **kwargs):
                         'backend': opts['backend']
                     }
 
+
             ptype = meta["parameters"][i]["type"]
             if ptype == "isotime":
                 y = hapitime2datetime(data[name],allow_missing_Z=True)
@@ -489,6 +490,7 @@ def hapiplot(*args, **kwargs):
                 y = data[name].astype('U')
             else:
                 y = np.asarray(data[name])
+
 
             if 'fill' in meta["parameters"][i] and meta["parameters"][i]['fill']:
                 if  ptype == 'isotime' or ptype == 'string':
@@ -527,7 +529,7 @@ def hapiplot(*args, **kwargs):
 
             if not 'legendlabels' in opts['tsopts']:
                 legendlabels = []
-                if 'size' in meta['parameters'][i]:   
+                if 'size' in meta['parameters'][i]:
                     for l in range(0,meta['parameters'][i]['size'][0]):
                         bin_label = ''
                         bin_name = ''
@@ -627,7 +629,10 @@ def hapiplot(*args, **kwargs):
             # Apply tsopts
             for key, value in opts['tsopts'].items():
                 tsopts[key] = value
-            
+
+            if nodata == True:
+                tsopts['nodata'] = True
+
             with rc_context(rc=opts['rcParams']):
                 fig = timeseries(Time, y, **tsopts)
 
