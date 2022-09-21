@@ -1,7 +1,8 @@
 # Development:
 # Test repository code:
-#   make repository-test     # Test using $(PYTHON)
-#   make repository-test-all # Test on all versions in $(PYTHONVERS)
+#   make repository-test      # Test using $(PYTHON)
+#   make repository-test-fast # Test w/o installing anaconda3 in .. (run after repository-test)
+#   make repository-test-all  # Test on all versions in $(PYTHONVERS)
 #
 # Making a local package:
 # 1. Update CHANGES.txt to have a new version line
@@ -42,7 +43,7 @@ PYTHONVERS=python3.8 python3.7 python3.6 python3.5
 
 # VERSION is updated in "make version-update" step and derived
 # from CHANGES.txt. Do not edit.
-VERSION=0.2.1
+VERSION=0.2.2b0
 SHELL:= /bin/bash
 
 LONG_TESTS=false
@@ -106,6 +107,10 @@ repository-test-single:
 	# Not sure why the following is needed, but I get pytest install errors otherwise.
 	@ $(CONDA_ACTIVATE) $(PYTHON) && pip install pytest pillow; pip install .
 	$(CONDA_ACTIVATE) $(PYTHON) && $(PYTHON) -m pytest -rx -rP -v test/test_hapiplot.py
+
+repository-test-fast:
+	$(foreach MATPLOTLIB, $(MATPLOTLIBS), \
+		make repository-test-single MATPLOTLIB=$(MATPLOTLIB) PYTHON=$(PYTHON); )
 
 repository-test:
 	@make clean

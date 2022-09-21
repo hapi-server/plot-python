@@ -8,3 +8,4 @@ anaconda3/
 build/
 dist/
 hapiplot.egg-info/
+*.dif.png

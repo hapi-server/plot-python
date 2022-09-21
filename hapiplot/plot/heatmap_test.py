@@ -7,11 +7,12 @@ from hapiplot.plot.heatmap import heatmap
 from datetime import datetime, timedelta
 import numpy as np
 
-tests = range(0,31)
-tests = range(27,31)
+#tests = range(0,31)
+#tests = range(27,29)
 #tests = range(23,24)
 tests = range(0,31)
-#tests = [31]
+#tests = [25]
+#tests = [26]
 
 import matplotlib as plt
 plt.rcParams.update({'figure.max_open_warning': 0})
@@ -245,7 +246,8 @@ for tn in tests:
 
         # Gaps and NaNs
         # TODO: Need to distinguish between gaps and nans
-        x = np.array([tb0,tb1,tb2]) # Columns
+        #x = np.array([tb0,tb1,tb2]) # Columns
+        x = np.array([[0,1],[2,3],[4,5]]) # Columns
         y = np.array(['A','B','C']) # Rows
         z = np.array([[1,2,3],[4,np.nan,6],[7,8,9]])
         title = 'test #' + str(tn) + '  3x3 w/NaNs and categorical y'

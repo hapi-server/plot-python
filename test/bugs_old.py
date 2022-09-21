@@ -5,7 +5,7 @@ from hapiplot import hapiplot
 # http://hapi-server.org/servers-dev/#server=FadenTemp&dataset=Iowa+City+Conditions&parameters=Temperature&start=2022-02-11T00:00:00.000Z&stop=2022-02-12T00:00:00.000Z&return=image&format=svg
 
 all = False
-bn = 13
+bn = 14
 
 if bn == 1 or all == True:
     server     = 'http://hapi-server.org/servers-dev/TestData2.1/hapi'
@@ -215,4 +215,23 @@ if bn == 13 or all == True:
     opts       = {'format': 'binary', 'logging': True, 'usecache': True}
 
     data, meta = hapi(server, dataset, parameters, start, stop, **opts)
+    hapiplot(data, meta)
+
+if bn == 14 or all == True:
+
+    from hapiclient import hapi
+    
+    server     = 'https://cdaweb.gsfc.nasa.gov/hapi'
+    dataset    = 'GOES13_EPS-MAGED_1MIN'
+    # Notes:
+    # 1. Use parameters='' to request all parameters from GOES13_EPS-MAGED_1MIN.
+    # 2. Multiple parameters can be requested using a comma-separated
+    #    list, e.g., parameters='dtc_cor_eflux_stack9,dtc_cor_eflux_stack6'
+    parameters = 'dtc_cor_eflux_stack9'
+    start      = '2010-06-02T00:00:00Z'
+    stop       = '2010-06-03T00:00:00.000Z'
+    
+    data, meta = hapi(server, dataset, parameters, start, stop)
+    
+    from hapiplot import hapiplot
     hapiplot(data, meta)

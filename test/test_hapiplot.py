@@ -54,7 +54,7 @@ def test_2_0():
 def test_2_1():
     # All TestData2.1 parameters
 
-    server     = 'http://hapi-server.org/servers-dev/TestData2.1/hapi'
+    server     = 'http://hapi-server.org/servers/TestData2.1/hapi'
     dataset    = 'dataset1'
     start      = '1970-01-01Z'
     stop       = '1970-01-01T00:00:11Z'

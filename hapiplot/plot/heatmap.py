@@ -388,14 +388,14 @@ def heatmap(x, y, z, **kwargs):
         if len(ygaps) > 0:
             zg[ygaps,:] = 1
         if opts['gap.hatch'] == '':
-            ax.pcolormesh(x, y, zg, cmap=cmapg)
+            im = ax.pcolormesh(x, y, zg, cmap=cmapg)
         else:
             # pcolormesh does not support hatch
             # TODO: Must set hatch.color through rc params and context manager.
             # opts['nan.hatch.color']
             # https://stackoverflow.com/a/42672782/1491619
             with rc_context(rc={'hatch.color': opts['gap.hatch.color']}):
-                ax.pcolor(x, y, zg, cmap=cmapg, hatch=opts['gap.hatch'])
+                im = ax.pcolor(x, y, zg, cmap=cmapg, hatch=opts['gap.hatch'])
         if opts['gap.legend']:
             with rc_context(rc={'hatch.color': opts['gap.hatch.color']}):
                 legendh.append(Patch(facecolor=opts['gap.color'],
@@ -413,11 +413,11 @@ def heatmap(x, y, z, **kwargs):
         zn[inan] = 1
 
         if opts['nan.hatch'] == '':
-            ax.pcolormesh(x, y, zn, edgecolor=edgecolor, cmap=cmapn)
+            im = ax.pcolormesh(x, y, zn, edgecolor=edgecolor, cmap=cmapn)
         else:
             # Must set hatch.color through rc params and context manager.
             with rc_context(rc={'hatch.color': opts['nan.hatch.color']}):
-                ax.pcolor(x, y, zn, cmap=cmapn, edgecolor=edgecolor, hatch=opts['nan.hatch'])
+                im = ax.pcolor(x, y, zn, cmap=cmapn, edgecolor=edgecolor, hatch=opts['nan.hatch'])
         if opts['nan.legend']:
             with rc_context(rc={'hatch.color': opts['nan.hatch.color']}):
                 legendh.append(Patch(facecolor=opts['nan.color'],
@@ -432,7 +432,7 @@ def heatmap(x, y, z, **kwargs):
         ax.set_xticks(xc)
         if len(xcl) > 0:
             # Relabel x-ticks b/c nonuniform center spacing.
-            ax.set_xticklabels(xcl)
+            ax.set_xticklabels(xcl[0:-1])
 
     #for spine in ax.spines.values(): spine.set_edgecolor(None)
 
@@ -442,11 +442,11 @@ def heatmap(x, y, z, **kwargs):
         ax.set_yticks(yc)
         if len(ycl) > 0:
             # Relabel y-ticks b/c nonuniform center spacing.
-            ax.set_yticklabels(ycl)
+            ax.set_yticklabels(ycl[0:-1])
 
     # Note: categoricalx and categoricaly are very similar.
     if categoricalx:
-        xcategories, x = categoryinfo(xlabels)
+        xcategories, _ = categoryinfo(xlabels)
         # TODO: This will create too many ticks if # of categories is large
         ax.set_xticklabels(xcategories)
         ax.set_xticks(list(ax.get_xticks()) + [-0.5] + list(ax.get_xticks()+0.5))
@@ -458,7 +458,7 @@ def heatmap(x, y, z, **kwargs):
             k = k+1
 
     if categoricaly:
-        ycategories, y = categoryinfo(ylabels)
+        ycategories, _ = categoryinfo(ylabels)
         ax.set_yticklabels(ycategories)
         ax.set_yticks(list(ax.get_yticks()) + [-0.5] + list(ax.get_yticks()+0.5))
         k = 0

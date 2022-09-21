@@ -22,3 +22,5 @@ v0.2.1:
 	2022-03-08 ce96c36 Clean up Makefile
 	2022-06-10 7d917ea, e5bd9da Handle all nans for time series
 	2022-06-10 543102c Make test depend mpl version
+v0.2.2b0:
+	2022-09-21 Fix for issue #4
