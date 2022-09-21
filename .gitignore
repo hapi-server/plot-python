@@ -9,3 +9,4 @@ build/
 dist/
 hapiplot.egg-info/
 *.dif.png
+.spyproject
