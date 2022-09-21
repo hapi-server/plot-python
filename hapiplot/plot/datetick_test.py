@@ -1,7 +1,7 @@
 import dateutil.parser
 import matplotlib.pyplot as plt
 import numpy as np
-from hapiclient.plot.datetick import datetick
+from hapiplot.plot.datetick import datetick
 
 def plotit(ds1, ds2):
     # Plots two points separated by varying time ranges.
@@ -15,6 +15,10 @@ def plotit(ds1, ds2):
     plt.title(ds1 + ' - ' + ds2)
     datetick('x')
     plt.grid()
+
+###############################################################################
+# One time value
+plotit('1971-01-01T00:10:00Z','1971-01-01T00:10:00Z')
 
 ###############################################################################
 # > 50 years

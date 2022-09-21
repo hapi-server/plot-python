@@ -172,6 +172,9 @@ def timeseries(t, y, **kwargs):
         ax.set_yticklabels([])
         ax.set_yticks([])
 
+    if len(y) == 1:
+        ax.set_yticks(y)
+
     if np.any(all_nan):
         if len(y.shape) > 1:
             for i in range(0, y.shape[1]):

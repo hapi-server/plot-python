@@ -109,7 +109,7 @@ def datetick(dir, **kwargs):
 
     bbox = axes.dataLim
 
-    if dir == 'x':        
+    if dir == 'x':
         datamin = bbox.x0
         datamax = bbox.x1
         lim = axes.get_xlim()
@@ -144,6 +144,11 @@ def datetick(dir, **kwargs):
         print('Data min time: %f' % datamin)
         print('Data max time: %f' % datamax)
     
+    if datamin == datamax:
+        axes.set_xticks([time[0]])
+        axes.set_xticklabels([datetime.strftime(time[0],'%Y-%m-%dT%H:%M:%S')])
+        return
+
     deltaT = time[-1] - time[0]
     nDays  = deltaT.days
     nHours = deltaT.days * 24.0 + deltaT.seconds/3600.0
