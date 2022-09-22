@@ -21,7 +21,7 @@ if len(sys.argv) > 1 and sys.argv[1] == 'develop':
 # version is modified by misc/version.py (executed from Makefile). Do not edit.
 setup(
     name='hapiplot',
-    version='0.2.2b0',
+    version='0.2.2b1',
     author='Bob Weigel',
     author_email='rweigel@gmu.edu',
     packages=find_packages(),

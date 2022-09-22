@@ -5,15 +5,30 @@ from hapiplot import hapiplot
 # http://hapi-server.org/servers-dev/#server=FadenTemp&dataset=Iowa+City+Conditions&parameters=Temperature&start=2022-02-11T00:00:00.000Z&stop=2022-02-12T00:00:00.000Z&return=image&format=svg
 
 all = False
-bn = 1
+bn = 3
 
 if bn == 1 or all == True:
+    # No data from 10-20 but still colored
     server     = 'http://hapi-server.org/servers-dev/TestData2.0/hapi'
     dataset    = 'dataset1'
     parameter  = 'spectra'
     start      = '1970-01-01T00:00:01Z'
     stop       = '1970-01-01T00:00:30Z'
     opts       = {'logging': True, 'usecache': True}
+
+    data, meta = hapi(server, dataset, parameter, start, stop, **opts)
+
+    popts      = {'logging': True, 'returnimage': False, 'usecache': False}
+    hapiplot(data, meta, **popts)
+
+if bn == 2 or all == True:
+    # Should be "no data"
+    server     = 'http://hapi-server.org/servers-dev/TestData2.0/hapi'
+    dataset    = 'dataset1'
+    parameter  = 'spectra'
+    start      = '1970-01-01T00:00:11Z'
+    stop       = '1970-01-01T00:00:12Z'
+    opts       = {'logging': True, 'usecache': False}
 
     data, meta = hapi(server, dataset, parameter, start, stop, **opts)
 

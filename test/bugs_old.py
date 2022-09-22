@@ -235,3 +235,30 @@ if bn == 14 or all == True:
     
     from hapiplot import hapiplot
     hapiplot(data, meta)
+
+if bn == 15 or all == True:
+    server     = 'http://hapi-server.org/servers-dev/TestData2.0/hapi'
+    dataset    = 'dataset1'
+    parameter  = 'spectra'
+    start      = '1970-01-01T00:00:00Z'
+    stop       = '1970-01-01T00:00:01Z'
+    opts       = {'logging': True, 'usecache': True}
+
+    data, meta = hapi(server, dataset, parameter, start, stop, **opts)
+
+    popts      = {'logging': True, 'returnimage': False, 'usecache': False}
+    hapiplot(data, meta, **popts)
+
+if bn == 16 or all == True:
+    # Should be "no data"
+    server     = 'http://hapi-server.org/servers-dev/TestData2.0/hapi'
+    dataset    = 'dataset1'
+    parameter  = 'scalar'
+    start      = '1970-01-01T00:00:11Z'
+    stop       = '1970-01-01T00:00:12Z'
+    opts       = {'logging': True, 'usecache': False, 'logging': True, 'format': 'csv'}
+
+    data, meta = hapi(server, dataset, parameter, start, stop, **opts)
+    print(data)
+    popts      = {'logging': True, 'returnimage': False, 'usecache': False}
+    hapiplot(data, meta, **popts)
