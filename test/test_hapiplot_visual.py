@@ -135,20 +135,19 @@ for tn in tests:
         popts = {
                     'logging': True,
                     'saveimage': False,
-                    'backend': 'Qt5Agg',
                     'style': 'classic',
                     'title': 'Tight layout test. Figures should match.'
                 }
 
         data, meta = hapi(server, dataset, parameters, start, stop, **opts)
 
-            
+
         # Set labels and make tight layout after call to hapiplot
         meta = hapiplot(data, meta, **popts)
         fig = meta['parameters'][1]['hapiplot']['figure']
         fig.axes[0].set_ylabel('y label\nsub y label\nsub sub ylabel 2')
         fig.tight_layout()
-        fig.show()
+        #fig.show()
         # Two calls to fig.tight_layout() may be needed b/c of bug in PyQt:
         # https://github.com/matplotlib/matplotlib/issues/10361
 

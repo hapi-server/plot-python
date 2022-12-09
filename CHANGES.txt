@@ -26,3 +26,5 @@ v0.2.2b0:
 	2022-09-21 7395572 Heatmap with y categories and gaps fails; https://github.com/hapi-server/plot-python/issues/3
 	2022-09-21 6c2a400 datetick failure when one value; https://github.com/hapi-server/plot-python/issues/4
 v0.2.2b1:
+	2022-11-15 3879436 Remove depreciated (and unneeded) fig.canvas.set_window_title
+v0.2.2:

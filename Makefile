@@ -1,13 +1,24 @@
 # Development:
 # Test repository code:
-#   make repository-test      # Test using $(PYTHON)
-#   make repository-test-fast # Test w/o installing anaconda3 in .. (run after repository-test)
-#   make repository-test-all  # Test on all versions in $(PYTHONVERS)
+#
+# Test a single version of Python and Matplotlib; install anaconda3 & create env if needed.
+#   make repository-test-single PYTHON=3.8 MATPLOTLIB=3.6 
+#
+# Run tests that require visual inspection
+#   make repository-test-single-visual PYTHON=3.8 MATPLOTLIB=3.6 
+#
+# Test a single version of Python and all values of Matplotlib; create conda env if needed.
+#   make repository-test PYTHON=3.8
+#
+# Remove ./anaconda3 and run all tests (all combos of Python/Matplotlib)
+#   make repository-test-all
 #
 # Making a local package:
 # 1. Update CHANGES.txt to have a new version line
-# 2. make package
-# 3. make package-test-all
+# 2. make package-test PYTHON=3.8 MATPLOTLIB=3.5 # (Probably don't need to test all combos)
+#
+# Test https://colab.research.google.com/github/hapi-server/client-python-notebooks/blob/master/hapi_demo.ipynb#examples
+#
 #
 # Upload package to pypi.org test starting with uploaded package:
 # 1. make release
@@ -24,26 +35,37 @@
 #    is now in a pre-release state.
 
 # https://matplotlib.org/stable/devel/min_dep_policy.html
-PYTHON=python3.5
-MATPLOTLIBS=3.0
-PYTHON_VER=$(subst python,,$(PYTHON))
+ifeq ($(PYTHON),3.5)
+	MATPLOTLIBS=3.0
+endif
 
-PYTHON=python3.6
-MATPLOTLIBS=3.0 3.1 3.2 3.3
-PYTHON_VER=$(subst python,,$(PYTHON))
+ifeq ($(PYTHON),3.6)
+	MATPLOTLIBS=3.2 3.1 3.0
+endif
 
-# Default Python version to use for tests
-PYTHON=python3.7
-MATPLOTLIBS=3.4 3.5
-PYTHON_VER=$(subst python,,$(PYTHON))
+ifeq ($(PYTHON),3.7)
+	MATPLOTLIBS=3.5 3.4 3.3 3.2 3.1 3.0
+endif
+
+ifeq ($(PYTHON),3.8)
+	# 3.0 fails on OS-X with 
+	# "The C/C++ header for freetype2 (ft2build.h)
+	# could not be found.  You may need to install the
+	# development package.""
+	MATPLOTLIBS=3.6 3.5 3.4 3.3 3.2 3.1
+endif
+
+ifeq ($(PYTHON),3.9)
+	# 3.0-3.3 fail on OS-X with error: fatal error: 'ft2build.h' file not found
+	MATPLOTLIBS=3.6 3.5 3.4
+endif
 
 # Python versions to test
-# TODO: Use tox.
-PYTHONVERS=python3.8 python3.7 python3.6 python3.5
+PYTHONS=3.9 3.8 3.7 3.6 3.5
 
 # VERSION is updated in "make version-update" step and derived
 # from CHANGES.txt. Do not edit.
-VERSION=0.2.2b1
+VERSION=0.2.2
 SHELL:= /bin/bash
 
 LONG_TESTS=false
@@ -58,7 +80,6 @@ ifeq ($(TRAVIS_OS_NAME),windows)
 	CONDA=/c/tools/miniconda3
 endif
 
-
 CONDA_ACTIVATE=source $(CONDA)/etc/profile.d/conda.sh; conda activate
 
 # ifeq ($(shell uname -s),MINGW64_NT-10.0-18362)
@@ -66,17 +87,14 @@ ifeq ($(TRAVIS_OS_NAME),windows)
 	CONDA_ACTIVATE=source $(CONDA)/Scripts/activate; conda activate
 endif
 
-
 URL=https://upload.pypi.org/
 REP=pypi
 
-pythonw=$(PYTHON)
-
+pythonw=python$(PYTHON)
 # ifeq ($(shell uname -s),MINGW64_NT-10.0-18362)
 ifeq ($(TRAVIS_OS_NAME),windows)
 	pythonw=python
 endif
-
 ifeq ($(UNAME_S),Darwin)
 	# Use pythonw instead of python. On OS-X, this prevents "need to install
 	# python as a framework" error. The following finds the path to the binary
@@ -84,10 +102,9 @@ ifeq ($(UNAME_S),Darwin)
 	# /opt/anaconda3/envs/python3.6/bin/python3.6
 	# -> 
 	# /opt/anaconda3/envs/python3.6/bin/pythonw
-	a=$(shell source activate $(PYTHON); which $(PYTHON))
-	pythonw=$(subst bin/$(PYTHON),bin/pythonw,$(a))
+	#a=$(shell source activate python-$(PYTHON)-matplotlib-$(MATPLOTLIB); which python$(PYTHON))
+	#pythonw=$(subst bin/python$(PYTHON),bin/pythonw,$(a))
 endif
-
 
 ################################################################################
 # Test contents in repository using different python versions
@@ -96,38 +113,26 @@ test:
 
 repository-test-all:
 	- rm -rf $(CONDA)
-	@ for version in $(PYTHONVERS) ; do \
+	@ for version in $(PYTHONS) ; do \
 		make repository-test PYTHON=$$version ; \
 	done
 
-repository-test-single:
-	make condaenv PYTHON=$(PYTHON)
-	$(CONDA_ACTIVATE) $(PYTHON) && pip install matplotlib=="$(MATPLOTLIB).*"
-	@ $(CONDA_ACTIVATE) $(PYTHON) && $(PYTHON) setup.py develop | grep "Best"
-	# Not sure why the following is needed, but I get pytest install errors otherwise.
-	@ $(CONDA_ACTIVATE) $(PYTHON) && pip install pytest pillow; pip install .
-	$(CONDA_ACTIVATE) $(PYTHON) && $(PYTHON) -m pytest -rx -rP -v test/test_hapiplot.py
-
-repository-test-fast:
-	$(foreach MATPLOTLIB, $(MATPLOTLIBS), \
-		make repository-test-single MATPLOTLIB=$(MATPLOTLIB) PYTHON=$(PYTHON); )
-
 repository-test:
-	@make clean
-	rm -rf anaconda3
 	$(foreach MATPLOTLIB, $(MATPLOTLIBS), \
 		make repository-test-single MATPLOTLIB=$(MATPLOTLIB) PYTHON=$(PYTHON); )
+
+repository-test-single:
+	make anaconda3/envs/python-$(PYTHON)-matplotlib-$(MATPLOTLIB) MATPLOTLIB=$(MATPLOTLIB) PYTHON=$(PYTHON)
+	$(CONDA_ACTIVATE) python-$(PYTHON)-matplotlib-$(MATPLOTLIB) && python$(PYTHON) -m pytest -rx -rP -v test/test_hapiplot.py
 
 # These require visual inspection.
-repository-test-other:
+repository-test-single-visual:
 	# Run using pythonw instead of python only so plot windows always work
 	# for programs called from command line. This is needed for (at least)
 	# OS-X, Python 3.5, and matplotlib instaled from pip.
-	$(CONDA_ACTIVATE) $(PYTHON); $(pythonw) hapiplot_demo.py
-	$(CONDA_ACTIVATE) $(PYTHON); $(pythonw) test/test_hapiplot_visual.py
-
-	#$(CONDA_ACTIVATE) $(PYTHON); $(PYTHON) hapiclient/autoplot/autoplot_test.py
-	#$(CONDA_ACTIVATE) $(PYTHON); $(PYTHON) hapiclient/gallery/gallery_test.py
+	make anaconda3/envs/python-$(PYTHON)-matplotlib-$(MATPLOTLIB) MATPLOTLIB=$(MATPLOTLIB) PYTHON=$(PYTHON)
+	$(CONDA_ACTIVATE) python-$(PYTHON)-matplotlib-$(MATPLOTLIB); $(pythonw) hapiplot_demo.py
+	$(CONDA_ACTIVATE) python-$(PYTHON)-matplotlib-$(MATPLOTLIB); $(pythonw) test/test_hapiplot_visual.py
 	#jupyter-notebook ../client-python-notebooks/hapi_demo.ipynb
 ################################################################################
 
@@ -138,19 +143,23 @@ ifeq ($(shell uname -s),Darwin)
 	CONDA_PKG=Miniconda3-latest-MacOSX-x86_64.sh
 endif
 
-condaenv: ./anaconda3
-# ifeq ($(shell uname -s),MINGW64_NT-10.0-18362)
+anaconda3/envs/python-$(PYTHON)-matplotlib-$(MATPLOTLIB): anaconda3
 ifeq ($(TRAVIS_OS_NAME),windows)
 	cp $(CONDA)/Library/bin/libcrypto-1_1-x64.* $(CONDA)/DLLs/
 	cp $(CONDA)/Library/bin/libssl-1_1-x64.* $(CONDA)/DLLs/
-	$(CONDA)/Scripts/conda create -y --name $(PYTHON) python=$(PYTHON_VER)
+	$(CONDA)/Scripts/conda create -y --name python-$(PYTHON)-matplotlib-$(MATPLOTLIB) python=$(PYTHON)
 else
 	$(CONDA_ACTIVATE); \
-		$(CONDA)/bin/conda create -y --name $(PYTHON) python=$(PYTHON_VER)
+		$(CONDA)/bin/conda create -y --name python-$(PYTHON)-matplotlib-$(MATPLOTLIB) python=$(PYTHON)
 endif
+	$(CONDA_ACTIVATE) python-$(PYTHON)-matplotlib-$(MATPLOTLIB) && pip install matplotlib=="$(MATPLOTLIB).*"
+	@ $(CONDA_ACTIVATE) python-$(PYTHON)-matplotlib-$(MATPLOTLIB) && python$(PYTHON) setup.py develop | grep "Best"
+	# Not sure why the install of pytest is needed given it is in setup.py, but I get pytest install errors otherwise.
+	# Note that pillow==8 is needed for Python 3.6. Ideally this would be set in setup.py.
+	#@ $(CONDA_ACTIVATE) python-$(PYTHON)-matplotlib-$(MATPLOTLIB) && pip install pytest; pip install .
 
-./anaconda3: /tmp/$(CONDA_PKG)
-	bash /tmp/$(CONDA_PKG) -b -p $(CONDA)
+anaconda3: /tmp/$(CONDA_PKG)
+	test -d anaconda3 || bash /tmp/$(CONDA_PKG) -b -p $(CONDA)
 
 /tmp/$(CONDA_PKG):
 	curl https://repo.anaconda.com/miniconda/$(CONDA_PKG) > /tmp/$(CONDA_PKG) 
@@ -160,6 +169,7 @@ endif
 venv-test:
 	cp hapiplot_demo.py /tmp # TODO: Explain why needed.
 	source env-$(PYTHON)/bin/activate && \
+	  pip install pytest ipython && \
 		pip uninstall -y hapiplot && \
 		pip install --pre '$(PACKAGE)' \
 			--index-url $(URL)/simple  \
@@ -175,15 +185,10 @@ package:
 	make version-update
 	python setup.py sdist
 
-package-test-all:
-	@ for version in $(PYTHONVERS) ; do \
-		make repository-test-plots PYTHON=$$version ; \
-	done
-
 env-$(PYTHON):
-	$(CONDA_ACTIVATE) $(PYTHON); \
+	$(CONDA_ACTIVATE) python-$(PYTHON)-matplotlib-$(MATPLOTLIB); \
 		conda install -y virtualenv; \
-		$(PYTHON) -m virtualenv env-$(PYTHON)
+		python$(PYTHON) -m virtualenv env-$(PYTHON)
 
 package-test:
 	make package
@@ -205,13 +210,13 @@ release-upload:
 		&& echo Uploaded to $(subst upload.,,$(URL))/project/hapiplot/
 
 release-test-all:
-	@ for version in $(PYTHONVERS) ; do \
+	@ for version in $(PYTHONS) ; do \
 		make release-test PYTHON=$$version ; \
 	done
 
 release-test:
 	rm -rf env
-	$(CONDA_ACTIVATE) $(PYTHON); pip install virtualenv; $(PYTHON) -m virtualenv env
+	$(CONDA_ACTIVATE) $(PYTHON)-matplotlib-$(MATPLOTLIB); pip install virtualenv; python$(PYTHON) -m virtualenv env
 	make venv-test PACKAGE='hapiplot==$(VERSION)'
 ################################################################################
 
@@ -231,7 +236,7 @@ version-tag:
 # Install package in local directory (symlinks made to local dir)
 install-local:
 	#python setup.py -e .
-	$(CONDA_ACTIVATE) $(PYTHON); pip install --editable .
+	$(CONDA_ACTIVATE) $(PYTHON)-matplotlib-$(MATPLOTLIB); pip install --editable .
 
 install:
 	pip install 'hapiplot==$(VERSION)' --index-url $(URL)/simple

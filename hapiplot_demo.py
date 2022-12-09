@@ -14,7 +14,7 @@
 
 def main():
 
-    demos = [omniweb, sscweb, cdaweb, cassini, lisird]
+    demos = [omniweb, sscweb, cdaweb, lisird]
 
     for demo in demos:
         try:
