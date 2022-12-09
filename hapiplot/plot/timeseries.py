@@ -55,9 +55,9 @@ def timeseries(t, y, **kwargs):
         from matplotlib import pyplot as plt
         if opts['backend'] != 'default':
             try:
-                matplotlib.use(opts['backend'], warn=False, force=True)
+                matplotlib.use(opts['backend'], force=True)
             except:
-                matplotlib.use(matplotlib.get_backend(), warn=False, force=True)
+                matplotlib.use(matplotlib.get_backend(), force=True)
                 warnings.warn('Warning: matplotlib(' + opts['backend'] + \
                               ') call failed. Using default backend of ' + 
                               matplotlib.get_backend(), SyntaxWarning)
@@ -120,7 +120,6 @@ def timeseries(t, y, **kwargs):
         ax = fig.add_subplot(111)
     else:
         fig, ax = plt.subplots()
-        fig.canvas.set_window_title(opts['title'])
 
     if len(y.shape) > 1:
         all_nan = np.full((y.shape[1]), False)

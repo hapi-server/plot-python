@@ -18,9 +18,9 @@ def setopts(opts, kwargs):
 
     if opts['backend'] != 'default':
         try:
-            matplotlib.use(opts['backend'], warn=False, force=True)
+            matplotlib.use(opts['backend'], force=True)
         except:
-            matplotlib.use(matplotlib.get_backend(), warn=False, force=True)
+            matplotlib.use(matplotlib.get_backend(), force=True)
             warnings.warn('Warning: matplotlib(' + opts['backend'] + \
                           ') call failed. Using default backend of ' + 
                           matplotlib.get_backend(), SyntaxWarning)
