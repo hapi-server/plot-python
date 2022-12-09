@@ -6,8 +6,6 @@ install_requires = ["matplotlib", "hapiclient>0.1.7"]
 
 # python setup.py develop will install these deps
 if len(sys.argv) > 1 and sys.argv[1] == 'develop':
-    install_requires.append("deepdiff<3.3.0")
-    install_requires.append("pillow==8.0")
     print(sys.version_info)
     if sys.version_info < (3, 6):
         install_requires.append("pytest<5.0.0")
