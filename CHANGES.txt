@@ -28,3 +28,4 @@ v0.2.2b0:
 v0.2.2b1:
 	2022-11-15 3879436 Remove depreciated (and unneeded) fig.canvas.set_window_title
 v0.2.2:
+v0.2.3b0:

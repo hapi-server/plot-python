@@ -65,7 +65,7 @@ PYTHONS=3.9 3.8 3.7 3.6 3.5
 
 # VERSION is updated in "make version-update" step and derived
 # from CHANGES.txt. Do not edit.
-VERSION=0.2.2
+VERSION=0.2.3b0
 SHELL:= /bin/bash
 
 LONG_TESTS=false
