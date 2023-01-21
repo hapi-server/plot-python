@@ -11,7 +11,6 @@ from matplotlib import rc_context
 from hapiplot.plot.datetick import datetick
 
 
-
 def heatmap(x, y, z, **kwargs):
     """Plot a heatmap using pcolormesh and do typical configuration.
 
@@ -87,9 +86,6 @@ def heatmap(x, y, z, **kwargs):
         * nan.hatch
         * nan.hatch.color
         * nan.legend - Show legend entry for nans (True by default and if NaNs)
-
-
-
     """
 
     ###########################################################################
@@ -198,6 +194,27 @@ def heatmap(x, y, z, **kwargs):
 
         return yc, ycl
 
+    def boundaryInfo(x, coord):
+        xlabels = None
+        xcl = None
+        N = Nx
+        if coord == "y":
+            N = Ny
+        if len(x.shape) == 1 and len(x) == N:
+            # Centers given. Calculate edges.
+            if iscategorical(x):
+                xlabels = x
+                x = np.linspace(0, x.shape[0]-1, x.shape[0], dtype='int32')
+            xedges = False
+            xc = x
+            x = calcEdges(x, coord)
+            xc, xcl = adjustCenters(x, xc)
+        else:
+            xc = np.array([])
+            xedges = True
+
+        return x, xc, xedges, xcl, xlabels
+
     def iscategorical(x):
         return isinstance(x[0], np.character)
     
@@ -217,8 +234,6 @@ def heatmap(x, y, z, **kwargs):
             return True
         else:
             return False
-
-    ###########################################################################
 
     opts = {
                 'logging': False,
@@ -289,11 +304,13 @@ def heatmap(x, y, z, **kwargs):
         opts['cmap.name'] = 'viridis'
 
     if not opts['cmap']:
-        opts['cmap'] = matplotlib.pyplot.get_cmap(opts['cmap.name'], opts['cmap.numcolors'])
+        opts['cmap'] = matplotlib.pyplot.get_cmap(\
+                        opts['cmap.name'], opts['cmap.numcolors'])
 
     if opts['returnimage']:
         fig = Figure()
-        FigureCanvas(fig) # Not used directly, but calling attaches canvas to fig which is used later.
+        # Calling FigureCanvas() attaches canvas to fig which is used later.
+        FigureCanvas(fig) 
         ax = fig.add_subplot(111)
     else:
         fig, ax = plt.subplots()
@@ -334,34 +351,6 @@ def heatmap(x, y, z, **kwargs):
     if y.ndim == 1 and not (len(y) == Ny or len(y) == Ny+1):
         raise ValueError('Required: len(y) == z.shape[0] or len(y) == z.shape[0] + 1.')
 
-    categoricalx = iscategorical(x)
-    if len(x.shape) == 1 and len(x) == Nx:
-        # Centers given. Calculate edges.
-        if categoricalx:
-            xlabels = x
-            x = np.linspace(0, y.shape[0]-1, y.shape[0], dtype='int32')
-        xedges = False
-        xc = x
-        x = calcEdges(x, 'x')
-        xc, xcl = adjustCenters(x, xc)
-    else:
-        xc = np.array([])
-        xedges = True
-
-    categoricaly = iscategorical(y)
-    if len(y.shape) == 1 and len(y) == Ny:
-        # Centers given. Calculate edges.
-        if categoricaly:
-            ylabels = y
-            y = np.linspace(0, y.shape[0]-1, y.shape[0], dtype='int32')
-        yedges = False
-        yc = y
-        y = calcEdges(y, 'y')
-        yc, ycl = adjustCenters(y, yc)
-    else:
-        yc = np.array([])
-        yedges = True
-
     inan = np.where(np.isnan(z))
     havenans = False
     allnan = False
@@ -370,10 +359,17 @@ def heatmap(x, y, z, **kwargs):
     if np.all(np.isnan(z)):
         allnan = True
 
+    categoricalx = iscategorical(x)
+    x, xc, xedges, xcl, xlabels = boundaryInfo(x,'x')
+
+    categoricaly = iscategorical(y)
+    y, yc, yedges, ycl, ylabels = boundaryInfo(y,'y')
+
     xgaps = np.array([], dtype=np.int32)
-    ygaps = np.array([], dtype=np.int32)
     if len(x.shape) == 2: # x is an matrix
         x, z, xgaps = calcGaps(x, z, 'x')
+
+    ygaps = np.array([], dtype=np.int32)
     if len(y.shape) == 2: # y is an matrix
         y, z, ygaps = calcGaps(y, z, 'y')
 
@@ -444,29 +440,31 @@ def heatmap(x, y, z, **kwargs):
             # Relabel y-ticks b/c nonuniform center spacing.
             ax.set_yticklabels(ycl[0:-1])
 
-    # Note: categoricalx and categoricaly are very similar.
-    if categoricalx:
-        xcategories, _ = categoryinfo(xlabels)
+    def setTicks(labels, coord):
+        categories, _ = categoryinfo(labels)
         # TODO: This will create too many ticks if # of categories is large
-        ax.set_xticklabels(xcategories)
-        ax.set_xticks(list(ax.get_xticks()) + [-0.5] + list(ax.get_xticks()+0.5))
+        if coord == 'x':
+            ax.set_xticklabels(categories)
+            ticks = ax.get_xticks()
+            ticklines = ax.get_xticklines()
+            ax.set_xticks(list(ticks) + [-0.5] + list(ticks+0.5))
+        else:
+            ax.set_yticklabels(categories)
+            ticks = ax.get_yticks()
+            ticklines = ax.get_yticklines()
+            ax.set_yticks(list(ticks) + [-0.5] + list(ticks+0.5))
+
         k = 0
-        l = ax.get_xticklines()
-        for l in ax.get_xticklines():
-            if k < 2*len(xcategories):
+        for l in ticklines:
+            if k < 2*len(categories):
                 l.set_markeredgewidth(0)
             k = k+1
 
+    if categoricalx:
+        setTicks(xlabels, 'x')
+
     if categoricaly:
-        ycategories, _ = categoryinfo(ylabels)
-        ax.set_yticklabels(ycategories)
-        ax.set_yticks(list(ax.get_yticks()) + [-0.5] + list(ax.get_yticks()+0.5))
-        k = 0
-        l = ax.get_yticklines()
-        for l in ax.get_yticklines():
-            if k < 2*len(ycategories):
-                l.set_markeredgewidth(0)
-            k = k+1
+        setTicks(ylabels, 'y')
 
     # TODO: categoricalz not implemented.
     categoricalz = iscategorical(z)
