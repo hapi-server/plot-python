@@ -2,7 +2,7 @@ import io, os
 from PIL import Image, ImageChops, ImageStat
 
 
-def imgcheck(ref_file, img2, show_diff=False, generate_ref_files=False):
+def imgcheck(ref_file, now_file, show_diff=False, generate_ref_files=False):
 
     def imgdiff(img1, img2, diff_file=None, show_diff=False):
 
@@ -27,7 +27,7 @@ def imgcheck(ref_file, img2, show_diff=False, generate_ref_files=False):
         return diff
 
     ref_dir = os.path.dirname(ref_file)
-    print(ref_dir)
+
     if not os.path.exists(ref_dir):
         os.makedirs(ref_dir)
 
@@ -38,24 +38,35 @@ def imgcheck(ref_file, img2, show_diff=False, generate_ref_files=False):
         else:
             print('Generating reference file.')
 
-        img2 = Image.open(io.BytesIO(img2))
-        img2.save(ref_file)
+        if isinstance(now_file, bytes):
+            now_img = Image.open(io.BytesIO(now_file))
+            now_img.save(ref_file)
+        else:
+            import shutil
+            shutil.copyfile(now_file, ref_file)
 
         return False
 
     with open(ref_file, 'rb') as f:
-        img1 = f.read()
+        ref_bytes = f.read()
 
-    img2x = Image.open(io.BytesIO(img2))
-    img2x.save(ref_file.replace(".ref.",".now."))
+    if isinstance(now_file, bytes):
+        now_bytes = now_file
+        now_img = Image.open(io.BytesIO(now_bytes))
+        now_img.save(ref_file.replace(".ref.",".now."))
+    else:
+        with open(now_file, 'rb') as f:
+            now_bytes = f.read()
 
     diff_file = ref_file.replace(".ref.",".dif.")
 
-    diff = imgdiff(img1, img2, diff_file=diff_file, show_diff=show_diff)
-    
+    diff = imgdiff(ref_bytes, now_bytes, diff_file=diff_file, show_diff=show_diff)
+
     if diff == False:
         print("imgcheck(): \033[32mPASS\033[0m: Image")
         print("   " + ref_file)
         print("   has not changed")
+        return True
     else:
         print("imgcheck(): \033[0;31mFAIL\033[0m: Images differ. See diff image: " + diff_file)
+        return False
