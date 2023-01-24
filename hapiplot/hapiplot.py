@@ -492,6 +492,11 @@ def hapiplot(*args, **kwargs):
                 y = np.asarray(data[name])
 
 
+            remove_mean = False
+            if 'uk/GIN_' in meta['x_server']:
+                remove_mean = True
+                y_mean = np.nanmean(y, axis=0)
+
             if 'fill' in meta["parameters"][i] and meta["parameters"][i]['fill']:
                 if  ptype == 'isotime' or ptype == 'string':
                     Igood = y != meta["parameters"][i]['fill']
@@ -586,6 +591,9 @@ def hapiplot(*args, **kwargs):
                         if nodata:
                             col_name = col_name + " [no data in interval]"
 
+                        if remove_mean:
+                            col_name = "{0:s} - {1:.2f}".format(col_name, y_mean[l])
+
                         if 'label' in meta['parameters'][i] and \
                             type(meta['parameters'][i]['label']) == list and \
                             len(meta['parameters'][i]['label']) > l and \
@@ -593,6 +601,9 @@ def hapiplot(*args, **kwargs):
                                 col_name = meta['parameters'][i]['label'][l]
                                 if nodata:
                                     col_name = col_name + " [no data in interval]"
+                                else:
+                                    if remove_mean:
+                                        col_name = "{0:s} - {1:.2f}".format(col_name, y_mean[l])
 
                         if type(units) == list:
                             if len(units) == 1:
@@ -634,7 +645,10 @@ def hapiplot(*args, **kwargs):
                 tsopts['nodata'] = True
 
             with rc_context(rc=opts['rcParams']):
-                fig = timeseries(Time, y, **tsopts)
+                if remove_mean:
+                    fig = timeseries(Time, y-y_mean, **tsopts)
+                else:
+                    fig = timeseries(Time, y, **tsopts)
 
             meta["parameters"][i]['hapiplot']['figure'] = fig
 
