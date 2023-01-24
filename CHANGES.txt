@@ -29,3 +29,5 @@ v0.2.2b1:
 	2022-11-15 3879436 Remove depreciated (and unneeded) fig.canvas.set_window_title
 v0.2.2:
 v0.2.3b0:
+	2023-01-20 0cce33...a750fd heatmap test improvements
+	2023-01-24 3d0725 remove mean for intermagnet plots (temp fix)
