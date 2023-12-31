@@ -151,9 +151,9 @@ def timeseries(t, y, **kwargs):
                         legendlabels[i] = '{0:s}: No data in interval'.format(legendlabels[i])
             else:
                 if opts['nodata'] == True:
-                    legendlabels[0] = '{0:%s}: No data in interval'.format(legendlabels[0])
+                    legendlabels[0] = '{0:s}: No data in interval'.format(legendlabels[0])
                 else:
-                    legendlabels[0] = '{0:%s}: All {1:d} values are NaN'.format(legendlabels[0], y.shape[0])
+                    legendlabels[0] = '{0:s}: All {1:d} values are NaN'.format(legendlabels[0], y.shape[0])
         else:
             if len(y.shape) > 1:
                 for i in range(0, y.shape[1]):
@@ -171,7 +171,8 @@ def timeseries(t, y, **kwargs):
         ax.set_yticklabels([])
         ax.set_yticks([])
 
-    if len(y) == 1:
+    if len(y.shape) == 1 and y.size == 1:
+        # Single time value. Set one tick having that value.
         ax.set_yticks(y)
 
     if np.any(all_nan):
