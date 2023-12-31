@@ -18,7 +18,7 @@ def hapiplot(*args, **kwargs):
     """Plot response from HAPI server.
 
     Version: 0.2.3b0
-    
+
     Demos
     -----
     <https://github.com/hapi-server/client-python/blob/master/hapiclient/plot/hapiplot_test.py>
@@ -170,12 +170,12 @@ def hapiplot(*args, **kwargs):
     opts = setopts(opts, kwargs)
 
     from hapiclient import __version__
-    log('Running hapi.py version %s' % __version__, opts)
+    log('Using hapi.py version %s' % __version__, opts)
 
     from hapiplot import __version__
     from matplotlib import __version__ as mpl_version
-    
-    log('Running hapiplot.py version %s with Matplotlib version %s' % \
+
+    log('hapiplot version %s using Matplotlib version %s' % \
         (__version__, mpl_version), opts)
 
     # _rcParams are not actually rcParams:
@@ -194,16 +194,15 @@ def hapiplot(*args, **kwargs):
     nodata = False
     if len(data[timename]) == 0:
         nodata = True
+        # Set time to request range to set x-axis
         Time = hapitime2datetime(np.array([meta['x_time.min'], meta['x_time.max']]), allow_missing_Z=True)
-        data = np.ndarray(shape=(2,), dtype=data.dtype)
-        #data[timename] = Time
     else:
         Time = hapitime2datetime(data[timename], allow_missing_Z=True)
 
     if len(meta["parameters"]) == 1:
         a = 0 # Time is only parameter
     else:
-        a = 1 # Time plus another parameter
+        a = 1 # Time plus one or more parameters
 
     for i in range(a, len(meta["parameters"])):
 
@@ -211,16 +210,9 @@ def hapiplot(*args, **kwargs):
 
         name = meta["parameters"][i]["name"]
 
-        if nodata:
-            # Use NaN values for plot
-            data[name] = np.full(data.dtype[i].shape, np.nan)
-
-
-        name = meta["parameters"][i]["name"]
-
         if len(data[name].shape) > 3:
             # TODO: Implement more than 2 dimensions?
-            warning('Parameter ' + name + ' has size with more than 2 dimensions. Plotting first two only.')
+            log("Parameter '%s' has more than two components. Skipping." % name, opts)
             continue
 
         # If parameter has a size with two elements, e.g., [N1, N2]
@@ -229,7 +221,7 @@ def hapiplot(*args, **kwargs):
 
             log("Parameter '%s' has 3 components. Creating one plot per component." % name, opts)
 
-            pidx = 1 # Primary index is N2
+            pidx = 1 # Primary (fastest varying) index is N2
             sidx = 0 # Secondary index is N1
             nplts = data[name].shape[1]
             if data[name].shape[1] > data[name].shape[2]:
@@ -237,15 +229,14 @@ def hapiplot(*args, **kwargs):
                 sidx = 1
                 nplts = data[name].shape[2]
 
-
             if opts['returnimage']:
                 warning('Only returning first image for parameter with size[1] > 1.')
                 nplts = 1
+
             for j in range(nplts):
                 timename = meta['parameters'][0]['name']
 
                 # Name to indicate what is plotted
-
                 if pidx > sidx:
                     name_new = name + "[" + str(j) + ",:]"
                 else:
@@ -318,7 +309,8 @@ def hapiplot(*args, **kwargs):
                     opts['rcParams'] = kwargs['rcParams']
 
                 metar = hapiplot(datar, metar, **opts)
-                meta["parameters"][i]['hapiplot'] = metar["parameters"][i]['hapiplot']
+
+                meta["parameters"][i]['hapiplot'] = metar["parameters"][1]['hapiplot']
             return meta
 
         # Return cached image (case where we are returning binary image data)
@@ -362,6 +354,7 @@ def hapiplot(*args, **kwargs):
 
         if 'units' in meta["parameters"][i] and type(meta["parameters"][i]["units"]) == list:
             if as_heatmap:
+                # TODO: Verify that all units not the same
                 warning("Not plotting %s as heatmap because components have different units." % meta["parameters"][i]["name"])
             as_heatmap = False
 
@@ -377,17 +370,22 @@ def hapiplot(*args, **kwargs):
                 warning("Plots for only types double, integer, and isotime implemented. Not plotting %s." % meta["parameters"][i]["name"])
                 continue
 
-            z = np.asarray(data[name])
+            if nodata:
+                if a == 0:
+                    # Time is only parameter
+                    z = np.full((2,), np.nan)
+                else:
+                    if 'size' in meta['parameters'][i]:
+                        z = np.full((2, meta['parameters'][i]['size'][0]), np.nan)
+                    else:
+                        z = np.full((2,), np.nan)
+            else:
+                z = np.asarray(data[name])
 
             if 'fill' in meta["parameters"][i] and meta["parameters"][i]['fill']:
                 if meta["parameters"][i]["type"] == 'integer':
                     z = z.astype('<f8', copy=False)
                 z = fill2nan(z, meta["parameters"][i]['fill'])
-
-            if 'bins' in meta['parameters'][i]:
-                ylabel = meta["parameters"][i]['bins'][0]["name"] + " [" + meta["parameters"][i]['bins'][0]["units"] + "]"
-            else:    
-                ylabel = "col %d" % i
 
             units = meta["parameters"][i]["units"]
             nl = ""
@@ -399,31 +397,51 @@ def hapiplot(*args, **kwargs):
             if units is not None:
                 zlabel = " [" + units + "]"
 
+            bins = np.arange(meta['parameters'][i]['size'][0])
+            bins_time_dependent = False
             if 'bins' in meta['parameters'][i]:
                 if 'ranges' in meta["parameters"][i]['bins'][0]:
-                    bins = np.array(meta["parameters"][i]['bins'][0]["ranges"])
+                    if isinstance(meta['parameters'][i]['bins'][0]['ranges'], str) is False:
+                        bins = np.array(meta["parameters"][i]['bins'][0]["ranges"])
+                    else:
+                        bins_time_dependent = True
                 else:
-                    bins = np.array(meta["parameters"][i]['bins'][0]["centers"])
+                    if isinstance(meta['parameters'][i]['bins'][0]['centers'], str) is False:
+                        bins = np.array(meta["parameters"][i]['bins'][0]["centers"])
+                    else:
+                        bins_time_dependent = True
+
+            if 'bins' in meta['parameters'][i] and not bins_time_dependent:
+                ylabel = meta["parameters"][i]['bins'][0]["name"] \
+                       + " [" \
+                       + meta["parameters"][i]['bins'][0]["units"] \
+                       + "]"
             else:
-                bins = np.arange(meta['parameters'][i]['size'][0])
+                ylabel = "bin #"
+                if bins_time_dependent:
+                    ylabel = "bin #\n(vals are time dependent)"
 
             dt = np.diff(Time)
             dtu = np.unique(dt)
             if len(dtu) > 1:
-                #warning('Time values are not uniformly spaced. Bin width for '
-                #        'time will be based on time separation of consecutive time values.')
+                warning('Time values are not uniformly spaced. Bin width for '
+                        'time will be based on time separation of consecutive time values.')
                 # Cadence != time bin width in general, so can't use cadence.
                 # See https://github.com/hapi-server/data-specification/issues/75
                 if 'timeStampLocation' in meta and meta['timeStampLocation'].lower() == "begin":
+                    deltat = dt[0]
                     for t in range(0,Time.size):
-                        Time[t] = Time[t] + dt[i]
+                        Time[t] = Time[t] + dt[t]
                 elif 'timeStampLocation' in meta and meta['timeStampLocation'].lower() == "end":
                     for t in range(0,Time.size):
+                        deltat = -dt[0]
                         Time[t] = Time[t] - dt[i]
                 else:
-                    for t in range(0,Time.size):
-                        Time[t] = Time[t] - dt[i]/2
+                    deltat = -dt[0]/2
 
+                for t in range(0,Time.size):
+                    Time[t] = Time[t] + deltat
+ 
                 Time = np.append(Time, Time[-1] + dt[-1])
 
             elif 'timeStampLocation' in meta:
@@ -463,7 +481,6 @@ def hapiplot(*args, **kwargs):
             if opts['logz'] is not False:
                 hmopts['logz'] = True
 
-
             for key, value in opts['hmopts'].items():
                 hmopts[key] = value
 
@@ -482,18 +499,26 @@ def hapiplot(*args, **kwargs):
                         'backend': opts['backend']
                     }
 
-
             ptype = meta["parameters"][i]["type"]
-            if ptype == "isotime":
-                y = hapitime2datetime(data[name],allow_missing_Z=True)
-            elif ptype == 'string':
-                y = data[name].astype('U')
+            if nodata:
+                if a == 0:
+                    # Time is only parameter
+                    y = np.full((2,), np.nan)
+                else:
+                    if 'size' in meta['parameters'][i]:
+                        y = np.full((2,meta['parameters'][i]['size'][0]), np.nan)
+                    else:
+                        y = np.full((2,), np.nan)
             else:
-                y = np.asarray(data[name])
-
+              if ptype == "isotime":
+                  y = hapitime2datetime(data[name],allow_missing_Z=True)
+              elif ptype == 'string':
+                  y = data[name].astype('U')
+              else:
+                  y = np.asarray(data[name])
 
             if 'fill' in meta["parameters"][i] and meta["parameters"][i]['fill']:
-                if  ptype == 'isotime' or ptype == 'string':
+                if nodata == False and ptype == 'isotime' or ptype == 'string':
                     Igood = y != meta["parameters"][i]['fill']
                     # Note that json reader returns fill to U not b.
                     Nremoved = data[name].size - Igood.size
@@ -509,6 +534,11 @@ def hapiplot(*args, **kwargs):
                     y = y.astype('<f8', copy=False)
                 if ptype == 'integer' or ptype == 'double':
                     y = fill2nan(y, meta["parameters"][i]['fill'])
+
+            remove_mean = False
+            if 'uk/GIN_' in meta['x_server']:
+                remove_mean = True
+                y_mean = np.nanmean(y, axis=0)
 
             units = None
             if 'units' in meta["parameters"][i] and meta["parameters"][i]['units']:
@@ -562,7 +592,7 @@ def hapiplot(*args, **kwargs):
                                        bin_units = ' [' + bin_units + ']'
                                     else:
                                        bin_units = ' '
-                                
+
                             if 'centers' in meta['parameters'][i]['bins'][0]:
                                 if meta['parameters'][i]['bins'][0]['centers'][l] is not None:
                                     bin_label = bin_label + ' center = ' + str(meta['parameters'][i]['bins'][0]['centers'][l]) + bin_units
@@ -573,7 +603,7 @@ def hapiplot(*args, **kwargs):
                                 if type(meta['parameters'][i]['bins'][0]['ranges'][l]) == list:
                                     if meta['parameters'][i]['bins'][0]['ranges'][l][0] and meta['parameters'][i]['bins'][0]['ranges'][l][1] is not None:
                                         bin_label = bin_label + sep + ' range = [' + str(meta['parameters'][i]['bins'][0]['ranges'][l][0]) + ', ' + str(meta['parameters'][i]['bins'][0]['ranges'][l][1]) + ']' + bin_units
-                                #else:      
+                                #else:
                                 #    bin_label = bin_label + sep + ' range = [None]'
 
                             if bin_label != '':
@@ -586,6 +616,12 @@ def hapiplot(*args, **kwargs):
                         if nodata:
                             col_name = col_name + " [no data in interval]"
 
+                        if remove_mean:
+                            if y_mean[l] > 0:
+                                col_name = "{0:s} - {1:.2f}".format(col_name, y_mean[l])
+                            if y_mean[l] < 0:
+                                col_name = "{0:s} + {1:.2f}".format(col_name, -y_mean[l])
+
                         if 'label' in meta['parameters'][i] and \
                             type(meta['parameters'][i]['label']) == list and \
                             len(meta['parameters'][i]['label']) > l and \
@@ -593,6 +629,13 @@ def hapiplot(*args, **kwargs):
                                 col_name = meta['parameters'][i]['label'][l]
                                 if nodata:
                                     col_name = col_name + " [no data in interval]"
+                                else:
+                                    if remove_mean:
+                                        if y_mean[l] > 0:
+                                            col_name = "{0:s} - {1:.2f}".format(col_name, y_mean[l])
+                                        if y_mean[l] < 0:
+                                            col_name = "{0:s} + {1:.2f}".format(col_name, -y_mean[l])
+
 
                         if type(units) == list:
                             if len(units) == 1:
@@ -633,8 +676,12 @@ def hapiplot(*args, **kwargs):
             if nodata == True:
                 tsopts['nodata'] = True
 
-            with rc_context(rc=opts['rcParams']):
-                fig = timeseries(Time, y, **tsopts)
+            if remove_mean:
+                with rc_context(rc=opts['rcParams']):
+                    fig = timeseries(Time, y-y_mean, **tsopts)
+            else:
+                with rc_context(rc=opts['rcParams']):
+                    fig = timeseries(Time, y, **tsopts)
 
             meta["parameters"][i]['hapiplot']['figure'] = fig
 
