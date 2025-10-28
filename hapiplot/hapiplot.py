@@ -387,13 +387,13 @@ def hapiplot(*args, **kwargs):
                     z = z.astype('<f8', copy=False)
                 z = fill2nan(z, meta["parameters"][i]['fill'])
 
-            units = meta["parameters"][i]["units"]
+            units = meta["parameters"][i].get("units", "")
             nl = ""
             if len(name) + len(units) > 30:
                 nl = "\n"
 
             #zlabel = name + nl + " [" + units + "]"
-            zlabel = "";
+            zlabel = ""
             if units is not None:
                 zlabel = " [" + units + "]"
 
@@ -412,10 +412,11 @@ def hapiplot(*args, **kwargs):
                         bins_time_dependent = True
 
             if 'bins' in meta['parameters'][i] and not bins_time_dependent:
-                ylabel = meta["parameters"][i]['bins'][0]["name"] \
-                       + " [" \
-                       + meta["parameters"][i]['bins'][0]["units"] \
-                       + "]"
+                units = meta["parameters"][i]['bins'][0].get("units", None)
+                if units is None:
+                    units = ""
+                name = meta["parameters"][i]['bins'][0]["name"]
+                ylabel = name + "[" + units + "]"
             else:
                 ylabel = "bin #"
                 if bins_time_dependent:
