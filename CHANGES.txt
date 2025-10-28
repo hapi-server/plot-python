@@ -31,3 +31,5 @@ v0.2.2:
 v0.2.3b0:
 	2023-01-20 0cce33...a750fd heatmap test improvements
 	2023-01-24 3d0725 remove mean for intermagnet plots (temp fix)
+v0.2.3b1:
+	2025-10-28 9386a66 Catch null units
