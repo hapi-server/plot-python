@@ -519,10 +519,12 @@ def hapiplot(*args, **kwargs):
                   y = np.asarray(data[name])
 
             if 'fill' in meta["parameters"][i] and meta["parameters"][i]['fill']:
-                if nodata == False and ptype == 'isotime' or ptype == 'string':
-                    Igood = y != meta["parameters"][i]['fill']
-                    # Note that json reader returns fill to U not b.
-                    Nremoved = data[name].size - Igood.size
+                if (not nodata) and ptype in ('isotime', 'string'):
+                    fill_value = meta["parameters"][i]['fill']
+                    if ptype == 'isotime':
+                        fill_value = hapitime2datetime(fill_value, allow_missing_Z=True)[0]
+                    Igood = y != fill_value
+                    Nremoved = data[name].size - np.count_nonzero(Igood)
                     if Nremoved > 0:
                         # TODO: Implement masking so connected line plots will
                         # show gaps as they do for NaN values.

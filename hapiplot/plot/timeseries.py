@@ -4,7 +4,7 @@ import warnings
 import numpy as np
 import matplotlib
 
-from hapiplot.plot.datetick import datetick
+from datetick import datetick
 
 # https://github.com/pandas-dev/pandas/issues/18301
 # Suppresses depreciation warning.
@@ -88,6 +88,7 @@ def timeseries(t, y, **kwargs):
         props = {}
 
     ylabels = []
+    width, height = matplotlib.rcParams.get('figure.figsize', (7, 3))
 
     if issubclass(y.dtype.type, np.flexible):
         # See https://docs.scipy.org/doc/numpy-1.13.0/reference/arrays.scalars.html
@@ -95,12 +96,10 @@ def timeseries(t, y, **kwargs):
         # Find unique strings and give each an integer value.
         # Modify tick labels to correspond to unique strings
         yu = np.unique(y)
+        print(len(yu))
         if len(yu) > 20:
-            # Too many labels in this case. One option is to find
-            # number of unique first characters and change labels to
-            # "first character" and then warn. If number of unique first
-            # characters < 21, try number of unique second characters, etc.
-            raise ValueError('Can only plot strings if number of unique strings < 21')
+            print(height)
+            height = height * (len(yu)/5)
         yi = np.zeros((y.shape))
         for i in range(0, len(yu)):
             yi[y == yu[i]] = i
@@ -114,12 +113,12 @@ def timeseries(t, y, **kwargs):
     if opts['returnimage']:
         # See note above about OO API for explanation for why this is
         # done differently if returnimage=True
-        fig = Figure()
+        fig = Figure(figsize=(width, height))
         # Attach canvas to fig, which is needed by datetick and hapiplot.
-        FigureCanvas(fig) 
+        FigureCanvas(fig)
         ax = fig.add_subplot(111)
     else:
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(width, height))
 
     if len(y.shape) > 1:
         all_nan = np.full((y.shape[1]), False)

@@ -8,7 +8,7 @@ from matplotlib.patches import Patch
 from matplotlib.colors import LogNorm
 from matplotlib import rc_context
 
-from hapiplot.plot.datetick import datetick
+from datetick import datetick
 
 
 def heatmap(x, y, z, **kwargs):
