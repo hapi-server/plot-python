@@ -100,18 +100,18 @@ def heatmap(x, y, z, **kwargs):
 
         if len(y) == 1:
             # Put tick at center of bin; make bin have width = 1.
-            y = np.array([y[0]-0.5,y[0]+0.5])
+            if type(y[0]) == datetime.datetime:
+                dt = datetime.timedelta(seconds=1.0)
+                y = np.array([y[0]-dt,y[0]+dt])
+            else:
+                y = np.array([y[0]-0.5,y[0]+0.5])
         else:
             # y are bin centers
             dy = np.diff(y)
             dyu = np.unique(dy)
             if len(dyu) > 1:
-                if coord == 'y':
-                    warning('Only bin centers given for y and bin separation distance is not constant. ' + \
-                            'Bin width assumed based on separation distance and data pickers will not work properly.')
-                else:
-                    warning('Only bin centers given for x and bin separation distance is not constant. ' + \
-                            'Bin width assumed based on separation distance and data pickers will not work properly.')
+                warning(f'Only bin centers given for {coord} and bin separation distance is not constant. ' + \
+                         'Bin width assumed based on separation distance and data pickers will not work properly.')
                 y = np.append(y, y[-1] + dy[-1])
             else:
                 y = np.append(y, y[-1] + dy[0])
@@ -217,7 +217,7 @@ def heatmap(x, y, z, **kwargs):
 
     def iscategorical(x):
         return isinstance(x[0], np.character)
-    
+
     def categoryinfo(x):
         if len(x.shape) > 1:
             raise ValueError('If x contains characters, it must have one column or one row.')
@@ -359,6 +359,16 @@ def heatmap(x, y, z, **kwargs):
     if np.all(np.isnan(z)):
         allnan = True
 
+    if len(x) == 1 and type(x[0]) == datetime.datetime:
+        # If single time value, we only want a tick value at that time.
+        stv = x[0].isoformat().replace("+00:00","Z")
+        x = np.array([stv])
+
+    if len(y) == 1 and type(y[0]) == datetime.datetime:
+        # If single time value, we only want a tick value at that time.
+        stv = y[0].isoformat().replace("+00:00","Z")
+        y = np.array([stv])
+
     categoricalx = iscategorical(x)
     x, xc, xedges, xcl, xlabels = boundaryInfo(x,'x')
 
@@ -420,18 +430,19 @@ def heatmap(x, y, z, **kwargs):
                                      hatch=opts['nan.hatch']+opts['nan.hatch'],
                                      edgecolor=edgecolor, label='NaN'))
 
+    #for spine in ax.spines.values(): spine.set_edgecolor(None)
+
     # TODO: Handle case where > 10.
     # Label every Nth, etc. as needed
     if xedges and x.size <= 10:
         ax.set_xticks(x)
     if xc.size > 0 and xc.size <= 10:
         ax.set_xticks(xc)
-        if len(xcl) > 0:
+        if len(xcl) > 0 and len(xlabels) > 0:
             # Relabel x-ticks b/c nonuniform center spacing.
             ax.set_xticklabels(xcl[0:-1])
 
-    #for spine in ax.spines.values(): spine.set_edgecolor(None)
-
+    # TODO: Duplicate code
     if yedges and y.size <= 10:
         ax.set_yticks(y)
     if yc.size > 0 and yc.size <= 10:
@@ -511,7 +522,7 @@ def heatmap(x, y, z, **kwargs):
             if len(zc) == 1:
                 nc = len(zc)
             else:
-                nc = np.int(zc[-1]-zc[0] + 1)
+                nc = int(zc[-1]-zc[0] + 1)
             nc = np.min([1024, nc])
             if 'cmap.numcolors' in kwargs:
                 if opts['cmap.numcolors'] != nc:

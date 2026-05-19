@@ -412,10 +412,11 @@ def hapiplot(*args, **kwargs):
                         bins_time_dependent = True
 
             if 'bins' in meta['parameters'][i] and not bins_time_dependent:
-                ylabel = meta["parameters"][i]['bins'][0]["name"] \
-                       + " [" \
-                       + meta["parameters"][i]['bins'][0]["units"] \
-                       + "]"
+                units = meta["parameters"][i]['bins'][0].get("units", None)
+                if units is None:
+                    units = ""
+                name = meta["parameters"][i]['bins'][0]["name"]
+                ylabel = name + "[" + units + "]"
             else:
                 ylabel = "bin #"
                 if bins_time_dependent:
@@ -536,7 +537,10 @@ def hapiplot(*args, **kwargs):
                     y = fill2nan(y, meta["parameters"][i]['fill'])
 
             remove_mean = False
-            if 'uk/GIN_' in meta['x_server'] and (ptype == 'integer' or ptype == 'double'):
+            magdata = 'uk/GIN_' in meta['x_server']
+            magdata = magdata or 'wdcapi' in meta['x_server']
+            magdata = magdata or 'supermag' in meta['x_server']
+            if magdata and (ptype == 'integer' or ptype == 'double'):
                 remove_mean = True
                 y_mean = np.nanmean(y, axis=0)
 

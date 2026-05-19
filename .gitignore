@@ -7,6 +7,7 @@ __pycache__
 anaconda3/
 build/
 dist/
+hapicache/
 hapiplot.egg-info/
 *.dif.png
 .spyproject

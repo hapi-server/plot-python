@@ -5,7 +5,7 @@ from hapiplot import hapiplot
 # http://hapi-server.org/servers-dev/#server=FadenTemp&dataset=Iowa+City+Conditions&parameters=Temperature&start=2022-02-11T00:00:00.000Z&stop=2022-02-12T00:00:00.000Z&return=image&format=svg
 
 all = False
-bn = 14
+bn = 17
 
 if bn == 1 or all == True:
     server     = 'http://hapi-server.org/servers-dev/TestData2.1/hapi'
@@ -17,20 +17,22 @@ if bn == 1 or all == True:
 
     data, meta = hapi(server, dataset, parameter, start, stop, **opts)
 
-    popts      = {'logging': True, 'returnimage': True, 'usecache': False}
+    popts      = {'logging': True, 'returnimage': False, 'usecache': False}
     hapiplot(data, meta, **popts)
 
 if bn == 2 or all == True:
     # CDAWeb data - Magnitude and BGSEc from dataset AC_H0_MFI
+    # All NaNs
     server     = 'https://cdaweb.gsfc.nasa.gov/hapi'
     dataset    = 'AC_H0_MFI'
     start      = '1997-12-10T00:00:00'
     stop       = '1997-12-11T10:00:00'
     parameters = 'Magnitude,BGSEc'
-    opts       = {'logging': True, 'usecache': True}    
+
+    opts       = {'logging': True, 'usecache': True}
     data, meta = hapi(server, dataset, parameters, start, stop, **opts)
     hapiplot(data, meta, **opts)
-    
+
     opts['returnimage'] = True
     meta = hapiplot(data, meta, **opts)
     fig = meta['parameters'][1]['hapiplot']['figure']
@@ -41,27 +43,10 @@ if bn == 3 or all == True:
     start      = '2012-08-31T00:00:00.000Z'
     stop       = '2012-08-31T23:59:59.999Z'
     parameters = 'Time'
-    opts       = {'logging': True, 'usecache': True}    
-    data, meta = hapi(server, dataset, parameters, start, stop, **opts)
-    hapiplot(data, meta, **opts)
-
-if bn == 4 or all == True:
-    # Empty response not handled by hapiclient.
-
-    server     = 'https://hapi-server.org/servers-dev/CAIO/hapi'
-    dataset    = 'C1_CP_CIS-CODIF_HS_H1_MOMENTS'
-    parameter  = 'duration__C1_CP_CIS-CODIF_HS_H1_MOMENTS'
-    #start      = '2013-11-25T16:00:00.000Z'
-    #stop       = '2013-11-25T16:59:59.999Z'
-    start      = '2001-01-01T00:00:00.000Z'
-    stop       = '2001-01-01T01:00:00.000Z'
 
     opts       = {'logging': True, 'usecache': True}
-
-    data, meta = hapi(server, dataset, parameter, start, stop, **opts)
-
-    popts      = {'logging': True, 'returnimage': False, 'usecache': False}
-    hapiplot(data, meta, **popts)
+    data, meta = hapi(server, dataset, parameters, start, stop, **opts)
+    hapiplot(data, meta, **opts)
 
 if bn == 5 or all == True:
 
@@ -150,7 +135,7 @@ if bn == 8 or all == True:
     popts      = {'logging': True, 'returnimage': False, 'usecache': False}
     hapiplot(data, meta, **popts)
 
-if bn == 9 or all == True:
+if False and bn == 9 or all == True:
     
     # Previously size was mis-interpreted (see bn = 8).
 
@@ -166,7 +151,7 @@ if bn == 9 or all == True:
     popts = {'logging': False, 'logy': True, 'logz': True}
     hapiplot(data, meta, **popts)
 
-if bn == 10 or all == True:
+if False and bn == 10 or all == True:
 
     # Similar to bn = 8 and bn = 9.
 
@@ -193,24 +178,12 @@ if bn == 11 or all == True:
     data, meta = hapi(server, dataset, parameters, start, stop, **opts)
     hapiplot(data, meta)
 
-if bn == 12 or all == True:
-    server     = 'https://jfaden.net/HapiServerDemo/hapi'
-    dataset    = 'atticTemperature'
-    parameters = 'Temperature'
-    start      = '2003-10-20T00:00:00Z'
-    stop       = '2003-11-30T00:00:00.000Z'
-
-    opts       = {'format': 'binary', 'logging': True, 'usecache': True}
-
-    data, meta = hapi(server, dataset, parameters, start, stop, **opts)
-    hapiplot(data, meta)
-
 if bn == 13 or all == True:
     server     = 'http://planet.physics.uiowa.edu/das/das2Server/hapi'
     dataset    = 'Cassini/RPWS/Survey_KeyParam,B'
     parameters = 'magnetic_specdens'
     start      = '2010-01-01T00:00:00'
-    stop       = '2010-01-02T00:00:00'
+    stop       = '2010-01-01T01:00:00'
 
     opts       = {'format': 'binary', 'logging': True, 'usecache': True}
 
@@ -239,26 +212,44 @@ if bn == 14 or all == True:
 if bn == 15 or all == True:
     server     = 'http://hapi-server.org/servers-dev/TestData2.0/hapi'
     dataset    = 'dataset1'
-    parameter  = 'spectra'
-    start      = '1970-01-01T00:00:00Z'
-    stop       = '1970-01-01T00:00:01Z'
-    opts       = {'logging': True, 'usecache': True}
+    parameter  = 'scalar'
+    start      = '1970-01-01T00:00:11Z'
+    stop       = '1970-01-01T00:00:12Z'
+
+    opts       = {'logging': True, 'usecache': False, 'logging': True, 'format': 'csv'}
 
     data, meta = hapi(server, dataset, parameter, start, stop, **opts)
 
     popts      = {'logging': True, 'returnimage': False, 'usecache': False}
     hapiplot(data, meta, **popts)
+
 
 if bn == 16 or all == True:
     # Should be "no data"
     server     = 'http://hapi-server.org/servers-dev/TestData2.0/hapi'
     dataset    = 'dataset1'
-    parameter  = 'scalar'
+    parameter  = ''
     start      = '1970-01-01T00:00:11Z'
     stop       = '1970-01-01T00:00:12Z'
-    opts       = {'logging': True, 'usecache': False, 'logging': True, 'format': 'csv'}
+    opts       = {'logging': True, 'usecache': False}
 
     data, meta = hapi(server, dataset, parameter, start, stop, **opts)
-    print(data)
+
     popts      = {'logging': True, 'returnimage': False, 'usecache': False}
     hapiplot(data, meta, **popts)
+
+if bn == 17 or all == True:
+    # One valid point
+    server     = 'http://hapi-server.org/servers-dev/TestData2.0/hapi'
+    dataset    = 'dataset1'
+    parameter  = ''
+    start      = '1970-01-01T00:00:09Z'
+    stop       = '1970-01-01T00:00:11Z'
+
+    opts       = {'logging': True, 'usecache': False}
+
+    data, meta = hapi(server, dataset, parameter, start, stop, **opts)
+
+    popts      = {'logging': True, 'returnimage': False, 'usecache': False}
+    hapiplot(data, meta, **popts)
+

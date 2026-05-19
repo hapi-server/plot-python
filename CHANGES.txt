@@ -28,6 +28,10 @@ v0.2.2b0:
 v0.2.2b1:
 	2022-11-15 3879436 Remove depreciated (and unneeded) fig.canvas.set_window_title
 v0.2.2:
+	2022-12-09 cf3f6b
 v0.2.3b0:
 	2023-01-20 0cce33...a750fd heatmap test improvements
-	2023-01-24 3d0725 remove mean for intermagnet plots (temp fix)
+	2023-01-24 8ee09a7 remove mean for intermagnet plots (temp fix)
+	2023-12-31 fb6d0a8 legend str and single time val
+	2023-12-31 24f83b0 means and time-dep bins
+	2024-05-08 db89884 mean logic to apply only to GIN server
