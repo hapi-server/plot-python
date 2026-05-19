@@ -9,17 +9,31 @@ from matplotlib import __version__ as matplotlib_version
 matplotlib_version = ".".join(matplotlib_version.split(".")[0:2])
 
 logging = False
-do_diff = True   # If False shows image on screen.
 
+# If True, opens diff image
+show_diff = False
 
-def test_2_0():
-    # All TestData2.0 parameters
+# If True, execute diff code; otherwise plot what would be used for diff
+do_diff = True 
 
-    server     = 'http://hapi-server.org/servers/TestData2.0/hapi'
-    dataset    = 'dataset1'
-    start      = '1970-01-01Z'
-    stop       = '1970-01-01T00:00:11Z'
-    opts       = {'logging': logging, 'usecache': False}
+# If True, overwrites reference images and creates new ones
+generate_ref_files = False
+
+def test_versions():
+    _test_version('2.0')
+    _test_version('2.1')
+    _test_version('3.0')
+
+def _test_version(version):
+
+    server  = f'http://hapi-server.org/servers/TestData{version}/hapi'
+    dataset = 'dataset1'
+    start   = '1970-01-01Z'
+    stop    = '1970-01-01T00:00:11Z'
+    if version == '3.0':
+        stop = '1970-01-01T00:02:00Z'
+
+    opts = {'logging': logging, 'usecache': False}
 
     meta = hapi(server, dataset, **opts)
 
@@ -27,55 +41,14 @@ def test_2_0():
         parameter  = meta['parameters'][i]['name']
         data, metax = hapi(server, dataset, parameter, start, stop, **opts)
 
-        if False and i > 0: # Time parameter alone when i = 0. No fill allowed for time parameter.
-            # Change fill value to be same as second element of parameter array.
-            metax["parameters"][1]['fill'] = data[parameter].take(1).astype('U')
-
         popts = {'useimagecache': False, 'logging': logging, 'returnimage': do_diff}
 
-        metap = hapiplot(data, metax, **popts)
-
-        if do_diff == False:
-            continue
-
-        idx = 1
-        if i == 0: # Time parameter
-            idx = 0
-
-        img2 = metap['parameters'][idx]['hapiplot']['image']
-
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        ref_dir = os.path.join(dir_path, "imgs", "hapi-2.0", "mpl-" + matplotlib_version)
-        ref_file = os.path.join(ref_dir, parameter + ".ref.png")
-
-        imgcheck(ref_file, img2, show_diff=False, generate_ref_files=False)
-
-
-def test_2_1():
-    # All TestData2.1 parameters
-
-    server     = 'http://hapi-server.org/servers/TestData2.1/hapi'
-    dataset    = 'dataset1'
-    start      = '1970-01-01Z'
-    stop       = '1970-01-01T00:00:11Z'
-    opts       = {'logging': logging, 'usecache': False}
-
-    meta = hapi(server, dataset, **opts)
-    for i in range(0,len(meta['parameters'])):
-        parameter  = meta['parameters'][i]['name']
-        data, metax = hapi(server, dataset, parameter, start, stop, **opts)
-        if False and i > 0: # Time parameter alone when i = 0. No fill allowed for time parameter.
-            # Change fill value to be same as second element of parameter array.
-            metax["parameters"][1]['fill'] = data[parameter].take(1).astype('U')
-
-        popts = {'useimagecache': False, 'logging': logging, 'returnimage': do_diff}
-
-        if parameter == 'matrix':
+        if version == '2.1' and parameter == 'matrix':
             # The string 
             #   '$\Delta T_{xy}=1$'
             # causes the error
             #    Unknown symbol: \Delta, found '\'  (at char 0), (line:1, col:1)
-            # only when FigCanvasAgg is the back-end an using Matplotlib 3.2.2 and 3.4.2
+            # only when FigCanvasAgg is the back-endfor Matplotlib 3.2.2 and 3.4.2
             # The string
             #   '$\Delta$ $T_{xy}=1$'
             # does not cause an error. Seems to be a bug in Matplotlib.
@@ -93,10 +66,10 @@ def test_2_1():
         img2 = metap['parameters'][idx]['hapiplot']['image']
 
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        ref_dir = os.path.join(dir_path, "imgs", "hapi-2.1", "mpl-" + matplotlib_version)
+        ref_dir = os.path.join(dir_path, "imgs", f"hapi-{version}", "mpl-" + matplotlib_version)
         ref_file = os.path.join(ref_dir, parameter + ".ref.png")
 
-        imgcheck(ref_file, img2, show_diff=False, generate_ref_files=False)
+        imgcheck(ref_file, img2, show_diff=show_diff, generate_ref_files=generate_ref_files)
 
 
 def test_saveimage():
@@ -107,13 +80,13 @@ def test_saveimage():
     start      = '1970-01-01Z'
     stop       = '1970-01-01T00:00:11Z'
     parameters = 'scalar'
-    opts       = {'logging': False, 'usecache': True}
+    opts       = {'logging': logging, 'usecache': True}
     data, meta = hapi(server, dataset, parameters, start, stop, **opts)
 
     popts = {
                  'usecache': True,
                  'useimagecache': False,
-                 'logging': True,
+                 'logging': logging,
                  'saveimage': False,
                  'returnimage': True
              }
@@ -135,6 +108,7 @@ def test_saveimage():
 
 
 if __name__ == '__main__':
-    test_2_0()
-    #test_2_1()
-    #test_saveimage()
+    _test_version('2.0')
+    _test_version('2.1')
+    _test_version('3.0')
+    _test_saveimage()

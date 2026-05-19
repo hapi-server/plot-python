@@ -539,7 +539,10 @@ def hapiplot(*args, **kwargs):
                     y = fill2nan(y, meta["parameters"][i]['fill'])
 
             remove_mean = False
-            if 'uk/GIN_' in meta['x_server'] and (ptype == 'integer' or ptype == 'double'):
+            magdata = 'uk/GIN_' in meta['x_server']
+            magdata = magdata or 'wdcapi' in meta['x_server']
+            magdata = magdata or 'supermag' in meta['x_server']
+            if magdata and (ptype == 'integer' or ptype == 'double'):
                 remove_mean = True
                 y_mean = np.nanmean(y, axis=0)
 

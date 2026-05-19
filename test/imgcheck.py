@@ -21,7 +21,7 @@ def imgcheck(ref_file, now_file, show_diff=False, generate_ref_files=False):
         if diff and diff_file is not None:
             imgd.save(diff_file)
 
-        if show_diff:
+        if diff and show_diff:
             imgd.show()
 
         return diff

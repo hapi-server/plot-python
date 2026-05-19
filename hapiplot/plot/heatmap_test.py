@@ -7,12 +7,8 @@ from hapiplot.plot.heatmap import heatmap
 from datetime import datetime, timedelta
 import numpy as np
 
-#tests = range(0,31)
-#tests = range(27,29)
-#tests = range(23,24)
-tests = range(0,3)
-#tests = [25]
-tests = [4]
+tests = range(0,5)
+tests = [0]
 
 import matplotlib as plt
 plt.rcParams.update({'figure.max_open_warning': 0})
@@ -33,7 +29,7 @@ def testimg(fig, tn, tl):
 
 for tn in tests:
 
-    # 1x1 ints
+    # 1x1 ints and datetimes
     if tn == 0:
         x = np.array([1]) # Columns
         y = np.array([1]) # Rows
@@ -56,61 +52,68 @@ for tn in tests:
         fig, _ = heatmap(x, y, z, title=title)
         testimg(fig,tn,'c')
 
+        x = [datetime(1970, 1, 1)]
+        y = [1]
+        z = [[1]]
+        title = 'test #' + str(tn) + 'd z=1x1 dtime; col center and row center'
+        fig, _ = heatmap(x, y, z, title=title)
+        testimg(fig,tn,'d')
+
     # 1x2 and 2x1 ints
     if tn == 1:
         x = np.array([1]) # Columns
         y = np.array([1,2]) # Rows
         z = np.array([[1],[2]])
-        title = 'test #' + str(tn) + 'd z=2x1 ints; col center and row centers'
+        title = 'test #' + str(tn) + 'a z=2x1 ints; col center and row centers'
         fig, _ = heatmap(x, y, z, title=title)
         testimg(fig,tn,'a')
 
         x = np.array([1,2]) # Columns
         y = np.array([1,2]) # Rows
         z = np.array([[1],[2]])
-        title = 'test #' + str(tn) + 'd z=2x1 ints; col edges and row centers'
+        title = 'test #' + str(tn) + 'b z=2x1 ints; col edges and row centers'
         fig, _ = heatmap(x, y, z, title=title)
         testimg(fig,tn,'b')
 
         x = np.array([1]) # Columns
         y = np.array([1,2,3]) # Rows
         z = np.array([[1],[2]])
-        title = 'test #' + str(tn) + 'f z=2x1 ints; col center and row edges'
+        title = 'test #' + str(tn) + 'c z=2x1 ints; col center and row edges'
         fig, _ = heatmap(x, y, z, title=title)
         testimg(fig,tn,'c')
 
         x = np.array([1,4]) # Columns
         y = np.array([1,2,3]) # Rows
         z = np.array([[1],[2]])
-        title = 'test #' + str(tn) + 'g z=2x1 ints; col edges and row edges'
+        title = 'test #' + str(tn) + 'd z=2x1 ints; col edges and row edges'
         fig, _ = heatmap(x, y, z, title=title)
         testimg(fig,tn,'d')
 
         x = np.array([1,2]) # Columns
         y = np.array([1]) # Rows
         z = np.array([[1,2]])
-        title = 'test #' + str(tn) + 'h z=1x2 ints; col centers and row center'
+        title = 'test #' + str(tn) + 'e z=1x2 ints; col centers and row center'
         fig, _ = heatmap(x, y, z, title=title)
         testimg(fig,tn,'e')
 
         x = np.array([1,2]) # Columns
         y = np.array([1,2]) # Rows
         z = np.array([[1,2]])
-        title = 'test #' + str(tn) + 'i z=1x2 ints; col centers and row edges'
+        title = 'test #' + str(tn) + 'f z=1x2 ints; col centers and row edges'
         fig, _ = heatmap(x, y, z, title=title)
         testimg(fig,tn,'f')
 
         x = np.array([1,2,3]) # Columns
         y = np.array([1]) # Rows
         z = np.array([[1,2]])
-        title = 'test #' + str(tn) + 'j z=1x2 ints; col edges and row center'
+        title = 'test #' + str(tn) + 'g z=1x2 ints; col edges and row center'
         fig, _ = heatmap(x, y, z, title=title)
         testimg(fig,tn,'g')
 
         x = np.array([1,3,4]) # Columns
         y = np.array([1,2.5]) # Rows
         z = np.array([[1,2]])
-        title = 'test #' + str(tn) + 'k z=1x2 ints; col edges and row edges'
+        title = 'test #' + str(tn) + 'h z=1x2 ints; col edges and row edges'
         fig, _ = heatmap(x, y, z, title=title)
         testimg(fig,tn,'h')
 
