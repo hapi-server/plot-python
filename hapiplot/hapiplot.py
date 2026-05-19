@@ -387,13 +387,13 @@ def hapiplot(*args, **kwargs):
                     z = z.astype('<f8', copy=False)
                 z = fill2nan(z, meta["parameters"][i]['fill'])
 
-            units = meta["parameters"][i]["units"]
+            units = meta["parameters"][i].get("units", "")
             nl = ""
             if len(name) + len(units) > 30:
                 nl = "\n"
 
             #zlabel = name + nl + " [" + units + "]"
-            zlabel = "";
+            zlabel = ""
             if units is not None:
                 zlabel = " [" + units + "]"
 

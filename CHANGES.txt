@@ -35,3 +35,7 @@ v0.2.3b0:
 	2023-12-31 fb6d0a8 legend str and single time val
 	2023-12-31 24f83b0 means and time-dep bins
 	2024-05-08 db89884 mean logic to apply only to GIN server
+	2023-01-24 3d0725 remove mean for intermagnet plots (temp fix)
+v0.2.3b1:
+	2025-10-28 9386a66 Catch null units
+

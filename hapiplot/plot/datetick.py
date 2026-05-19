@@ -364,8 +364,6 @@ def datetick(dir, **kwargs):
     elif deltaT.days < 366*15:
         to = axes.lines[0].get_xdata()[0]
         tf = axes.lines[0].get_xdata()[-1]
-        print(to)
-        print(tf)
         # Ideally would set byyear=list(range(to.year, tf.year,2)) but
         # byyear is not a kwarg. Would need to something like
         # https://stackoverflow.com/questions/48428729/matplotlib-dates-yearlocator-with-odd-intervals
