@@ -688,12 +688,6 @@ def hapiplot(*args, **kwargs):
             else:
                 with rc_context(rc=opts['rcParams']):
                     fig = timeseries(Time, y, **tsopts)
-            if remove_mean:
-                with rc_context(rc=opts['rcParams']):
-                    fig = timeseries(Time, y-y_mean, **tsopts)
-            else:
-                with rc_context(rc=opts['rcParams']):
-                    fig = timeseries(Time, y, **tsopts)
 
             meta["parameters"][i]['hapiplot']['figure'] = fig
 

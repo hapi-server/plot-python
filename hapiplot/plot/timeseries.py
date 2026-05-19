@@ -88,18 +88,19 @@ def timeseries(t, y, **kwargs):
         props = {}
 
     ylabels = []
+    categorical = False
     width, height = matplotlib.rcParams.get('figure.figsize', (7, 3))
 
     if issubclass(y.dtype.type, np.flexible):
+        categorical = True
         # See https://docs.scipy.org/doc/numpy-1.13.0/reference/arrays.scalars.html
         # for diagram of subclasses.
         # Find unique strings and give each an integer value.
         # Modify tick labels to correspond to unique strings
         yu = np.unique(y)
-        print(len(yu))
         if len(yu) > 20:
-            print(height)
             height = height * (len(yu)/5)
+            #height = min(height * (len(yu) / 20.0), 12)
         yi = np.zeros((y.shape))
         for i in range(0, len(yu)):
             yi[y == yu[i]] = i
@@ -113,12 +114,12 @@ def timeseries(t, y, **kwargs):
     if opts['returnimage']:
         # See note above about OO API for explanation for why this is
         # done differently if returnimage=True
-        fig = Figure(figsize=(width, height))
+        fig = Figure(figsize=(width, height), constrained_layout=categorical)
         # Attach canvas to fig, which is needed by datetick and hapiplot.
         FigureCanvas(fig)
         ax = fig.add_subplot(111)
     else:
-        fig, ax = plt.subplots(figsize=(width, height))
+        fig, ax = plt.subplots(figsize=(width, height), constrained_layout=categorical)
 
     if len(y.shape) > 1:
         all_nan = np.full((y.shape[1]), False)
@@ -198,8 +199,6 @@ def timeseries(t, y, **kwargs):
     if np.any(all_nan):
         for i in range(0, len(all_nan)):
             leg.get_lines()[i].set_alpha(1)
-
-    ax.set_position([0.12,0.125,0.850,0.75])
 
     if np.all(all_nan):
         ax.grid(which='major', axis='x')
