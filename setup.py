@@ -22,7 +22,7 @@ print(install_requires)
 # version is modified by misc/version.py (executed from Makefile). Do not edit.
 setup(
     name='hapiplot',
-    version='0.2.3b0',
+    version='0.2.3b2',
     author='Bob Weigel',
     author_email='rweigel@gmu.edu',
     packages=find_packages(),
