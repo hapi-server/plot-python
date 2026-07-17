@@ -227,3 +227,31 @@ for tn in tests:
         meta['timeStampLocation'] = 'end'
         hapiplot(data, meta, **popts)
 
+    if tn == 8:
+        # Showing image in IPython requires display(SVG(...))
+        # Was not a bug, but was getting errors when trying to view
+        # output when returnimage=True
+
+        server     = 'http://hapi-server.org/servers/SSCWeb/hapi'
+        dataset    = 'ace'
+        parameter  = 'Y_TOD'
+        start      = '1997-09-15T00:00:00.000Z'
+        stop       = '1997-09-25T23:59:59.999Z'
+
+        opts       = {'logging': True, 'usecache': False}
+
+        data, meta = hapi(server, dataset, parameter, start, stop, **opts)
+
+        popts = {'logging': True,
+                'returnimage': True,
+                'useimagecache': False,
+                'saveimage': True,
+                'rcParams': {'savefig.transparent': True,
+                            'savefig.format': 'svg'
+                            }
+                }
+
+        meta = hapiplot(data, meta, **popts)
+
+        from IPython.display import display, SVG
+        display(SVG(meta['parameters'][1]['hapiplot']['image']))

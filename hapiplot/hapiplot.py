@@ -383,9 +383,13 @@ def hapiplot(*args, **kwargs):
                 z = np.asarray(data[name])
 
             if 'fill' in meta["parameters"][i] and meta["parameters"][i]['fill']:
-                if meta["parameters"][i]["type"] == 'integer':
-                    z = z.astype('<f8', copy=False)
-                z = fill2nan(z, meta["parameters"][i]['fill'])
+                ptype = meta["parameters"][i].get("type", None)
+                if ptype == 'integer' or ptype == 'double':
+                    if meta["parameters"][i]["type"] == 'integer':
+                        # Convert to float so that fill values can be replaced
+                        # with NaN for plotting.
+                        z = z.astype('<f8', copy=False)
+                    z = fill2nan(z, meta["parameters"][i]['fill'], meta["parameters"][i]['name'])
 
             units = meta["parameters"][i].get("units", "")
             nl = ""
@@ -536,7 +540,7 @@ def hapiplot(*args, **kwargs):
                 if ptype == 'integer':
                     y = y.astype('<f8', copy=False)
                 if ptype == 'integer' or ptype == 'double':
-                    y = fill2nan(y, meta["parameters"][i]['fill'])
+                    y = fill2nan(y, meta["parameters"][i]['fill'], meta["parameters"][i]['name'])
 
             remove_mean = False
             magdata = 'uk/GIN_' in meta['x_server']
@@ -757,22 +761,52 @@ def fill2mask(y, fill):
     pass
 
 
-def fill2nan(y, fill):
+def fill2nan(y, fill, name=None):
+
+    # Check that dtype is double.
+    if y.dtype.kind != 'f':
+        msg = (
+            f'fill2nan() called for parameter {name} with non-float dtype '
+            f'{y.dtype}. No fill values replaced with NaN.'
+        )
+        warning(msg)
+        return y
+
+    if fill.lower() == 'null':
+        msg = (
+            f'fill value string of "null" in metadata for parameter {name} '
+            f'with float dtype {y.dtype} is not valid. '
+            f'No fill values replaced with NaN.'
+        )
+        warning(msg)
+
+        return y
 
     if fill.lower() == 'nan':
         yfill = np.nan
-    else:
-        yfill = float(fill)
 
-    # Replace fills with NaN for plotting
-    # (so gaps shown in lines for time series an empty tiles for spectra)
+    try:
+        yfill = np.float64(fill)
+    except Exception:
+        msg = (
+            f'Invalid fill value of "{fill}" in metadata for parameter {name} ',
+            f'with float dtype {y.dtype}: float("{fill}") raised an exception.'
+        )
+        warning(msg)
+        return y
+
+    if np.float64(fill) != np.float32(fill) and np.any(y == np.float32(fill)):
+        yfill = np.float32(fill)
+        msg = (
+            f'Fill value of "{fill}" in metadata and values of '
+            f'np.float32("{fill}") = {np.float32(fill)} in data array for '
+            f'parameter "{name}" suggests fill value should have been {np.float32(yfill)}. '
+            f'Using {np.float32(yfill)} as fill value for plotting instead of {fill}.'
+        )
+        warning(msg)
+
+    # Replace fills with NaN for plotting (so gaps shown in lines for time
+    # series an empty tiles for spectra).
     y[y == yfill] = np.nan
-    # Catch case values in binary where, e.g., metadata says fill='-1E-31'
-    # but file has -9.999999848243207e+30. This happens when CDF data
-    # values stored as floats is converted to binary using double(value)
-    # because double(float('-1E31')) = -9.999999848243207e+30. Technically
-    # the server is not producing valid results b/c spec says fill values
-    # in file must match double(fill string in metadata).
-    y[y == np.float32(yfill)] = np.nan
 
     return y

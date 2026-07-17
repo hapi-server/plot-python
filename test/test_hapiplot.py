@@ -20,9 +20,8 @@ do_diff = True
 generate_ref_files = False
 
 def test_versions():
-    _test_version('2.0')
-    _test_version('2.1')
-    _test_version('3.0')
+    for version in ['2.0', '2.1', '3.0']:
+        _test_version(version)
 
 def _test_version(version):
 
@@ -111,4 +110,4 @@ if __name__ == '__main__':
     _test_version('2.0')
     _test_version('2.1')
     _test_version('3.0')
-    _test_saveimage()
+    test_saveimage()

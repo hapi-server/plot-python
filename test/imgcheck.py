@@ -1,4 +1,6 @@
-import io, os
+import os
+import io
+
 from PIL import Image, ImageChops, ImageStat
 
 

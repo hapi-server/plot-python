@@ -11,3 +11,5 @@ hapicache/
 hapiplot.egg-info/
 *.dif.png
 .spyproject
+test/imgs/
+test/bugs/

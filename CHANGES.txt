@@ -41,3 +41,4 @@ v0.2.3b1:
 v0.2.3b2:
 	2026-05-19 566fb02 Remove datetick; handle fill time values
 	2026-05-19 b99fbd3 Categorical fixes
+	2026-07-17 
