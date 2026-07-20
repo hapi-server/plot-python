@@ -1,11 +1,9 @@
 import pytest
 
-from hapiclient.util import HAPIWarning
 from hapiplot.hapiplot import fill2nan
 
 def test_fill2nan():
   import numpy as np
-
 
   y = np.array([1, -999.0, 3])
   assert np.isnan(fill2nan(y, '-999.0'))[1]
@@ -23,6 +21,12 @@ def test_fill2nan():
   y = np.array([[1, np.nan, 3], [4, 5, np.nan]])
   assert np.isnan(fill2nan(y, 'nan'))[0, 1]
   assert np.isnan(fill2nan(y, 'nan'))[1, 2]
+
+  try:
+    from hapiclient.util import HAPIWarning
+  except ImportError:
+    # HAPIWarning is not available in hapiclient versions < 0.3.2
+    return
 
   # Test that a HAPIWarning is raised for non-float dtype
   y = np.array([1, 2, 3, -999, 5], dtype=np.int32)
