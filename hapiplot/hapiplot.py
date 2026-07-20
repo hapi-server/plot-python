@@ -6,6 +6,7 @@ import numpy as np
 from matplotlib import rc_context
 from matplotlib import rcParams
 
+from datetick import datetick
 from hapiclient.hapitime import hapitime2datetime
 from hapiclient.hapi import request2path
 from hapiclient.hapi import cachedir
@@ -174,9 +175,10 @@ def hapiplot(*args, **kwargs):
 
     from hapiplot import __version__
     from matplotlib import __version__ as mpl_version
+    from datetick import __version__ as datetick_version
 
-    log('hapiplot version %s using Matplotlib version %s' % \
-        (__version__, mpl_version), opts)
+    log('hapiplot %s, Matplotlib %s, datetick %s' % \
+        (__version__, mpl_version, datetick_version), opts)
 
     # _rcParams are not actually rcParams:
     # 'figure.bbox': 'standard',
