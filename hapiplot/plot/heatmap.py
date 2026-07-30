@@ -385,6 +385,14 @@ def heatmap(x, y, z, **kwargs):
 
     legendh = []
     havegaps = False
+
+    rasterized = False
+    if z.size > 50000:
+        # File size gets too large otherwise. In once case a 181 MB SVG file
+        # was created that was not viewable in Chrome or Firefox.
+        rasterized = True
+
+
     if len(xgaps) > 0 or len(ygaps) > 0:
         havegaps = True
         cmapg = colors.LinearSegmentedColormap.from_list('gap',[opts['gap.color'],opts['gap.color']],2)
@@ -393,8 +401,9 @@ def heatmap(x, y, z, **kwargs):
             zg[:,xgaps] = 1
         if len(ygaps) > 0:
             zg[ygaps,:] = 1
+
         if opts['gap.hatch'] == '':
-            im = ax.pcolormesh(x, y, zg, cmap=cmapg)
+            im = ax.pcolormesh(x, y, zg, cmap=cmapg, rasterized=rasterized)
         else:
             # pcolormesh does not support hatch
             # TODO: Must set hatch.color through rc params and context manager.
@@ -412,14 +421,15 @@ def heatmap(x, y, z, **kwargs):
         edgecolor = opts['edgecolor']
         if allnan and edgecolor is None:
             edgecolor = 'k'
-        cmapn = colors.LinearSegmentedColormap.from_list('nan',[opts['nan.color'],opts['nan.color']],2)        
+        cmapn = colors.LinearSegmentedColormap.from_list('nan',[opts['nan.color'],opts['nan.color']],2)
         zn = np.nan*np.copy(z)
         if havegaps:
             inan = np.where(np.logical_and(np.isnan(z),zg != 1))
         zn[inan] = 1
 
         if opts['nan.hatch'] == '':
-            im = ax.pcolormesh(x, y, zn, edgecolor=edgecolor, cmap=cmapn)
+            im = ax.pcolormesh(x, y, zn, edgecolor=edgecolor, cmap=cmapn,
+                               rasterized=rasterized)
         else:
             # Must set hatch.color through rc params and context manager.
             with rc_context(rc={'hatch.color': opts['nan.hatch.color']}):
@@ -540,7 +550,8 @@ def heatmap(x, y, z, **kwargs):
 
         havelogz0 = False
         if not opts['logz']:
-            im = ax.pcolormesh(x, y, z, cmap=opts['cmap'], edgecolor=opts['edgecolor'])
+            im = ax.pcolormesh(x, y, z, cmap=opts['cmap'],
+                               edgecolor=opts['edgecolor'], rasterized=True)
         else:
             # Log scale emits warning if data have NaNs.
             warnings.filterwarnings(action='ignore',
@@ -558,12 +569,12 @@ def heatmap(x, y, z, **kwargs):
                 zmin = np.nanmin(z)
             norm = LogNorm(vmin=zmin, vmax=zmax)
             im = ax.pcolormesh(x, y, z, cmap=opts['cmap'], norm=norm,
-                               edgecolor=opts['edgecolor'])
+                               edgecolor=opts['edgecolor'], rasterized=True)
             if havelogz0:
                 cmapz = colors.LinearSegmentedColormap.from_list('logz0',[opts['logz0.color'],opts['logz0.color']],2)
                 z = np.nan*z
                 z[logz0idx] = 1
-                ax.pcolormesh(x, y, z, cmap=cmapz)
+                ax.pcolormesh(x, y, z, cmap=cmapz, rasterized=True)
                 if opts['logz0.legend']:
                     legendh.append(Patch(facecolor=opts['logz0.color'],
                                          edgecolor='k', label='0.0'))

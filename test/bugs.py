@@ -5,8 +5,10 @@ import os
 
 logging = False
 
-bn = 22 
+bn = 23
 #bn = None # None => run all tests
+
+outdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'bugs')
 
 opts  = {'logging': logging, 'usecache': False}
 popts = {'useimagecache': False, 'logging': logging, 'returnimage': True}
@@ -185,6 +187,15 @@ tests = {
         "parameters": '',
         "start": '1970-01-01T00:00:09Z',
         "stop": '1970-01-01T00:00:11Z'
+    },
+    23: {
+        "comment": "Invalid SVG when opened in browser b/c too large",
+        "server": 'https://api.phys.ucalgary.ca/hapi',
+        "dataset": 'SWAN_HSR_K0@BUFF',
+        "parameters": 'raw_power',
+        "start": '2026-01-15T00:00:00Z',
+        "stop": '2026-01-16T00:00:00Z',
+        "format": 'svg'
     }
 }
 
@@ -206,10 +217,14 @@ for tn in tests.keys():
 
     data, meta = hapi(server, dataset, parameters, start, stop, **opts)
     meta = hapiplot(data, meta, **popts)
-    os.makedirs('./bugs', exist_ok=True)
-    figs = [p['hapiplot']['figure'] for p in meta["parameters"]
-            if 'hapiplot' in p and 'figure' in p['hapiplot']]
+    os.makedirs(outdir, exist_ok=True)
+    figs = [
+        p['hapiplot']['figure'] for p in meta["parameters"]
+        if 'hapiplot' in p and 'figure' in p['hapiplot']
+    ]
     for j, fig in enumerate(figs):
-        fname = f'./bugs/bugs_{tn:02d}.png' if len(figs) == 1 else f'./bugs/bugs_{tn:02d}_{j+1:02d}.png'
+        fname = os.path.join(outdir, f'bugs_{tn:02d}.png' if len(figs) == 1 else f'bugs_{tn:02d}_{j+1:02d}.png')
+        if 'format' in test and test['format'] == 'svg':
+            fname = os.path.join(outdir, f'bugs_{tn:02d}.svg' if len(figs) == 1 else f'bugs_{tn:02d}_{j+1:02d}.svg')
         fig.savefig(fname, bbox_inches='tight')
         print(f"  Saved {fname}")
