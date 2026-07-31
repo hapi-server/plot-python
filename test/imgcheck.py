@@ -64,11 +64,11 @@ def imgcheck(ref_file, now_file, show_diff=False, generate_ref_files=False):
 
     diff = imgdiff(ref_bytes, now_bytes, diff_file=diff_file, show_diff=show_diff)
 
-    if diff == False:
-        print("imgcheck(): \033[32mPASS\033[0m: Image")
-        print("   " + ref_file)
-        print("   has not changed")
-        return True
-    else:
+    if diff:
         print("imgcheck(): \033[0;31mFAIL\033[0m: Images differ. See diff image: " + diff_file)
         return False
+    else:
+        print("imgcheck(): \033[32mPASS\033[0m: Images same:")
+        print("   " + ref_file)
+        print("   " + now_file)
+        return True
