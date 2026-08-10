@@ -1,6 +1,6 @@
 """
 Reads CHANGES.txt and finds last version. Updates version strings in Makefile,
-setup.py, hapi.py, and hapiclient.py to match this version.
+pyproject.toml, hapi.py, and hapiclient.py to match this version.
 
 TODO: Find better way to manage this.
 TODO: Update copyright year in LICENSE.txt
@@ -23,9 +23,9 @@ fin.close()
 version = version.rstrip()
 print("Using version = " + version)
 
-fnames = ["Makefile", "setup.py", "hapiplot/hapiplot.py", "hapiplot/__init__.py"]
-regexes = ["VERSION=(.*)", "version=(.*)", "Version: (.*)", "__version__ = (.*)"]
-replaces = ["VERSION=" + version, "version='" + version + "',", "Version: " + version, "__version__ = '" + version + "'"]
+fnames = ["Makefile", "pyproject.toml", "hapiplot/hapiplot.py", "hapiplot/__init__.py"]
+regexes = ["VERSION=(.*)", "version = (.*)", "Version: (.*)", "__version__ = (.*)"]
+replaces = ["VERSION=" + version, "version = \"" + version + "\"", "Version: " + version, "__version__ = '" + version + "'"]
 for i in range(len(fnames)):
 	updated = False
 	lines = ''

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hapiplot"
+version = "0.2.3b2"
+description = "Plot data from HAPI server"
+readme = "README.md"
+license = { file = "LICENSE.txt" }
+authors = [
+  { name = "Bob Weigel", email = "rweigel@gmu.edu" },
+]
+dependencies = [
+  "matplotlib",
+  "hapiclient>0.1.7",
+  "datetick",
+]
+
+[project.optional-dependencies]
+dev = ["build", "pytest"]
+
+[project.urls]
+Homepage = "http://pypi.python.org/pypi/hapiplot/"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["hapiplot*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+hapiplot = ["autoplot/server.jy"]

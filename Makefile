@@ -153,7 +153,7 @@ else
 		$(CONDA)/bin/conda create -y --name python-$(PYTHON)-matplotlib-$(MATPLOTLIB) python=$(PYTHON)
 endif
 	$(CONDA_ACTIVATE) python-$(PYTHON)-matplotlib-$(MATPLOTLIB) && pip install matplotlib=="$(MATPLOTLIB).*"
-	@ $(CONDA_ACTIVATE) python-$(PYTHON)-matplotlib-$(MATPLOTLIB) && python$(PYTHON) setup.py develop | grep "Best"
+	@ $(CONDA_ACTIVATE) python-$(PYTHON)-matplotlib-$(MATPLOTLIB) && python$(PYTHON) -m pip install --editable '.[dev]'
 	# Not sure why the install of pytest is needed given it is in setup.py, but I get pytest install errors otherwise.
 	# Note that pillow==8 is needed for Python 3.6. Ideally this would be set in setup.py.
 	#@ $(CONDA_ACTIVATE) python-$(PYTHON)-matplotlib-$(MATPLOTLIB) && pip install pytest; pip install .
@@ -183,7 +183,7 @@ venv-test:
 package:
 	make clean
 	make version-update
-	python setup.py sdist
+	python -m build --sdist
 
 env-$(PYTHON):
 	$(CONDA_ACTIVATE) python-$(PYTHON)-matplotlib-$(MATPLOTLIB); \
